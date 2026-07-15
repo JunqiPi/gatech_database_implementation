@@ -1,0 +1,350 @@
+>> In this module, we will learn about designing a
+thread-safe hash table, a core component in
+a database system. First, we will discuss what it means for a hash table
+to be thread safe and why avoiding risk conditions is important in a multi
+threaded database environment. Then we will look at
+fine grained locking, a technique that allows
+multiple threads to work with different parts of
+the hash table at the same time, thereby
+improving concurrency. Next, we will explore
+shared mutexes, which allow threads
+to look up keys in a hash table without too
+much locking overhead. Finally, we will compare different concurrency control protocols using a simulator.
+ 
+>> In this module,
+we will focus on accelerating hash
+index operations by using multiple threads. As databases grow in size, building an index using a single thread
+becomes a bottleneck. We will learn about how
+to use multiple cores effectively to speed up this
+index construction process. We will also discuss
+about how to make the hash index thread safe so that multiple
+threads can safely access the index
+at the same time. The traditional
+method of building an index one page
+at a time is time consuming and becomes a
+performance bottleneck on modern multicore CPUs. On a multicore CPU, we can parallelise this
+index construction task to significantly cut down the overall time to
+build the index. In the next version of Bass DB, we introduce parallel
+index construction. Let's look at the code. The parallel process
+pages function divides the total number of pages by the number of
+available threads, and then assigns each thread
+a range of pages to process. Each thread then excutes the
+process page range function over the start page and end page parameters
+assigned for that thread. For example, if you have seven pages in the
+table and two threads, we assign the first
+three pages to Thread 1 and the remaining
+four pages through Thread 2. While parallel
+index construction accelerates the
+building process, there is the risk of multiple
+threads attempting to update the same part of
+the index simultaneously. Without proper synchronization,
+this can lead to data loss as two threads may overwrite each
+other's updates. We refer to this problem
+as lack of thread safety. Thread safety is a property of a data structure that guarantees safe execution by
+multiple threads at the same time without causing any data loss
+or data corruption. The hash index is
+currently not thread safe. Consider this example. We have a hash table
+with linear probing and a hash function that
+is simply Key mod 10. Let's say Thread 1 and
+Thread 2 simultaneously try to insert the Keys
+15 and 25 respectively. When we apply the hash function
+for both Keys 15 and 25, the hash value is 5, Let's say Thread 1 probes
+and finds Slot 5 is empty. Before Thread 1 inserts
+Key 15 in that slot, there is a context
+switch to Thread 2. Thread 2 also probes and
+finds Slot 5 is empty, and decides to store Key
+25 in the same slot. If you look at the
+race condition, from a higher level
+operation standpoint, it looks like this. Thread 1 hashes the
+key and probe Slot 5. Before it stores the
+key in that slot, Thread 2 gets switched in
+by the operating system. Thread 2 hashes its key
+and also probe Slot 5. Then Thread 1 gets
+switched back in. It stores its Key 15 in Slot 5. And lastly, Thread 2
+gets switched in and it stores Key 25
+in the same slot. So that is a race
+condition inside the hash table during
+parallel index construction. To address this race condition, we need to use a mutex. A mutex helps serialize access
+to the shared hash table. So only one thread can modify the index
+at any given time, preventing the race conditions that could otherwise occur. In this code, we use a
+SDD lock good inside the hash index to manage the acquisition and release
+of the index mutex. This ensures that
+the index mutex is automatically released when
+the guard goes out of scope. Let's revisit the same example after we introduce the mutex. Now, when Thread 1 begins
+updating the index, it acquires the mutex, blocking other threads from
+entering the hash table. In Step 3, we see that
+when Thread 2 attempts to start its update operation
+on another CPU core, while Thread 1 is active, it must wait for Thread
+1 to unlock the mutex. In Step 5, we see that Thread 1
+releases the index mutex. In Step 6, Thread 2 then acquires the lock and proceeds
+with its update. Since Slot 5 is
+already occupied, it inserts Key 25 in Slot 6. In this way, controlled
+sequential access to the hash index ensures that all modifications are
+performed safely, maintaining the integrity and consistency of the hash index. Note that there is no need for Thread 1 to always
+precede Thread 2. In this execution, we see what happens if Thread 2
+precedes Thread 1. Here, Thread 1 is
+waiting for Thread 2 to finish its update and
+release the index mutex. Thread 2 places the
+Key 25 in Slot 5, so Thread 1 ends up
+placing Key 15 in Slot 6. Even with this thread interleaving by the
+operating system scheduler, due to proper synchronization
+using the mutex, both keys are inserted
+properly in the hash table, and there is no data loss. The final state of the
+hash table depends on which thread gets to execute
+its insertion first. If Thread 1 runs first
+before Thread 2, then Key 15 is placed in Slot 5, and Key 25 is placed in Slot 6. If Thread 2 runs
+before Thread 1, then Key 25 is placed in Slot 5 and Key 15 is
+placed in Slot 6. In both thread interleavings, the keys are
+successfully inserted, and there is no
+overwriting involved. To recap, in this lesson, we learned about the
+importance of thread safety in managing concurrent operations
+from multiple threads. We also discussed
+about how to speed up index construction by paralyzing the task across
+multiple threads.
+ 
+>> In this lesson,
+we will examine the concept of fine-grain
+locking within a hash table. This approach allows
+multiple threads to operate on different parts of the
+hash table simultaneously, drastically reducing lock contention and
+enhancing concurrency. When multiple threads
+attempt to insert or update key value
+pairs in a hash table, using a single mutex for the entire table significantly
+limits parallelism. For example, let's
+say Threads 1 and 2, want to insert keys 12
+and 27 into the table. Thread 1 needs to look at
+Slot 2 as 12 mod 10 is two. And then Thread 2 needs
+to look at Slot 7 as 27 mod 10 is seven. Even though these threads are
+working on different slots, they need to wait
+for the same mutex, so the performance drops down to that of single-threaded
+exclusion. To address this issue in
+the next version of bus DB, we introduce
+fine-grained locking. This method involves associating a separate mutex with each
+slot in the hash table. Such a setup allows each thread to lock only the slot
+it needs to access, leaving the rest of the
+hash table free for other threads to operate
+on simultaneously. Here, for example, Thread 1 tries to lock Slot 2 and Thread 2 tries to
+simultaneously lock Slot 7. They both independently do the insert operations, thereby
+increasing concurrency. Let's look at the insert
+or update function. Here, we associate each slot in the hash table
+with its own mutex, so we have a vector of
+pointers to mutexes. We limit the scope of lock
+acquisition to a single slot, which is critical for
+increasing concurrency. Why do we use a vector
+of unique pointers to mutexes instead of directly
+using a vector of mutexes? SDD vector requires the element to be movable since the elements must be moved to a new memory location when the vector needs
+to be expanded. However, mutex objects are
+non-movable and non-copiable. This is by design to prevent accidental
+moving of the mutex. Mutex objects are low level synchronization
+primitives that are tightly integrated with the underlying operating system. To work around this constraint, we use a vector of unique
+pointers to mutexes. When the vector needs
+to grow or shrink, only the pointers
+are moved or copied, not the mutexes themselves, ensuring thread safety and
+mutex state consistency. While retrieving values
+in the getValue method, we traverse through the
+index one slot at a time. Before axing the slot, we lock the specific
+slots mutex. This ensures that reads are not interrupted by
+concurrent writes, ensuring reliable results
+even under high concurrency. Fine-grain locking significantly
+boost parallelism by enabling multiple
+threads to update different parts of the
+hash table simultaneously. It reduces the likelihood of
+threads waiting for locks, thereby decreasing
+contention and improving overall
+index throughput. However, while it
+enhances performance, it also introduces
+additional overhead due to the management
+of multiple locks. The cost of acquiring and releasing locks increases
+with the number of locks. Each lock consumes resources, so more locks mean
+more memory usage. It is important to find the right balance in
+lock granularity. Too fine might lead to
+excessive overhead, while too coarse can
+inhibit parallelism. In general, for any
+data structure, we need to look
+at the axis pans. If the contention is high for certain parts of
+the data structure, then those parts might benefit
+from finer granularity. For other parts of the data structure with low contention, coarser locks might
+be sufficient. In this lesson, we
+learned about how fine-grained locking improves concurrency of a hash index.
+ 
+>> In this lesson, we will learn about how
+mutex can limit concurrency, particularly in
+read-heavy workloads. We will discuss about how
+shared mutex in C++ offers a more refined
+approach to managing read and write operations in the hash table, thereby
+increasing concurrency. With fine-grain locking,
+using a mutex for each slot provides
+mutual exclusion by allowing only one thread
+at a time to access the slot irrespective of whether it is a read
+or write operation. While the mutex is
+effective in ensuring data integrity during
+write operations, it severely limits concurrency
+for read operations. In scenarios where
+multiple threads need to read a slot while
+finding a key, they have to wait for
+exclusive access to the slot. This approach severely
+limits concurrency, even though multiple
+threads could safely read the slot simultaneously
+without risk. For example, consider
+three threads trying to do different operations
+on a slot at the same time. Let's say Thread 1 is doing an insert or write operation and Threads 2 and 3 are doing
+find or read operations. With the mutex, here is a possible interleaving. First, Thread 3 does its read
+operation at time step 1. Then Thread 1 does its write
+operation at time step 2. Then Thread 2 does its read
+operation at time step 3. In this way, they have to access the shared slot one at a
+time due to the mutex. To address the concurrency
+limitation of mutex, we transition to
+std::shared_mutex in the next version of bus DB. This shared mutex differentiates between read and
+write operations, enabling multiple threads to hold a read lock simultaneously while still ensuring
+exclusive access for threads performing
+write operations. Let's revisit the
+previous example. With a shared mutex, Threads 2 and 3 get
+shared access to the slot at the same time and can read
+the slot at time step 1. Then Thread 1 gets
+exclusive access to the slot to complete its write
+operation at time step 2. By allowing several read
+operations to occur in parallel without waiting for
+other reads to complete, shared_mutex
+increases concurrency in read-heavy workloads. Let's look at the code. In the insert or
+update function, each hash table slot is now protected by its
+own shared_mutex. Write operations require an exclusive lock via
+std::unique lock. For read operations in
+the get value function, shared lock is
+utilized to ensure that multiple threads can access the same slot concurrently as long as no thread
+is writing to it. This drastically improves
+read throughput as even 16 threads can concurrently read the index
+in a thread-safe way. During modifications
+to the data structure, std::unique_lock provides
+a necessary barrier that ensures a threat's
+exclusive access to data. This lock is essential for write operations
+that could lead to data erases if not protected
+from other threads. For example, here,
+Thread 2 currently holds the unique_cock and is
+performing a write operation. Threads 1 and 3 are
+blocked and cannot access the shared hash table slot until Thread 2 releases
+the shared_mutex. While reading the
+data structure, std::shared_lock allows
+multiple threads to read from the same slot without blocking
+each other unless there is a thread riding to
+that slot at the same time. For example, both
+Threads 1 and 3 have the shared_lock
+and are performing read operations
+at the same time. Thread 2 is blocked and cannot
+gain exclusive access to the shared hash table slot until Threads 2 and 3
+release the shared_lock. This accelerates read operations in the hash table by allowing simultaneous access
+from multiple readers without compromising
+thread safety. Let's look at the big picture of fine-grain locking
+with shared_mutex. Each slot is protected
+using its own shared_mutex. When Thread 2 writes
+data to slot 2, it acquires an exclusive
+lock on that slot only. Simultaneously, Threads 1
+and 3 can read from slot 7 using a shared_lock, thereby
+enhancing concurrency. Thus, fine-grain locking with shared_mutex not only protects
+data integrity but also significantly boosts
+operational throughput by allowing concurrent read
+and write operations across different slots
+of the hash table. In this lesson, we explore
+how to transition from mutex to shared_mutex to further improve concurrency
+in the hash table.
+ 
+>> In this lesson, we will present a simulation
+framework for comparing the performance of different concurrency
+control protocols in the hash table. This simulation framework
+will help us better understand the behavior of the different locking protocols. In our framework, we do
+not use real threads and mutexes to demonstrate concurrency control
+for two reasons. First, they execute
+in real time, which is typically too fast
+for qualitative analysis. Second, real threats are managed
+by the operating system, so the order in which they
+run is non-deterministic and difficult to replicate consistently for
+educational purposes. By simulating
+threads and mutexes, we create a manageable step by step educational simulator
+that allows us to understand the sequential progression of events in a concurrent
+environment. Unlike real threats, these simulated threads
+are deterministic. However, it is important to
+note that the simulator only roughly approximates
+the behavior of real threats and mutexes. We build a simulator in Python. We start by simulating a mutex. The simulated mutex allows only one thread to access a
+shared resource at any time. Here, the try_acquire method checks if the mutex
+is currently locked. If not, it locks the resource and allows the
+requesting thread to proceed. Otherwise, it forces the thread to wait, simulating contention. We next simulate a shared mutex. Unlike the simple mutex, the simulated shared
+mutex supports multiple readers
+simultaneously or a single writer exclusively. It has four methods. The try_acquire_write method
+ensures that a write lock is only granted if no other reads or writes are currently active. The try_acquire_read
+method grants read access as long as no other thread is
+holding a write lock. The other two
+methods are used for releasing read and write locks. We then simulate a
+concurrent hash table that can operate under three
+different locking protocols. First, a global mutex for
+the entire hash table. Second, an individual
+mutex for each slot. Third, a shared mutex for
+each slot that allows multiple reads or a single write in a single logical time step. With a global mutex, only one thread can do any operations on the
+hash table at a time. Here, Thread 2 is trying
+to insert a key into the table after acquiring
+the global mutex. Next, with a mutex
+per slot protocol, threads can independently
+work on different slots. However, for a given slot, only one thread can do
+any operation at a time. Here, threads 1 and
+3 are working on slots 2 and 7 at the same time. Lastly, with a shared
+mutex per slot protocol, threads can independently
+work on different slots, similar to the previous
+concurrency control protocol. However, unlike the
+previous protocol, for a given slot, there can be multiple readers
+at a given time. Here, threads 1 and 3 are
+simultaneously reading Slot 7. We next simulate threads. Each thread in our
+simulation performs a series of find and insert operations
+on the hash table. In the simulation,
+we carefully manage each thread state and manage transitions between different
+states like locking, reading a slot, writing
+to a slot, and unlocking. There is a unlock and relock state where
+the thread unlocks the current slot and then tries to lock the next lsot
+in the next time step. With the simulator, each thread can take only one step
+in a logical time step. The simulation stops when all threads have finished all their hash table operations. We ensure that a thread
+can acquire a lock, only if it was released in
+the previous time step. Here is an illustrative trace. At time step 10 in
+the simulation, Thread 0 is attempting to lock Slot 2 for an
+insert operation. Meanwhile, Thread 1 has
+read Key 25 at Slot 5, and Thread 2 has released
+the lock on Slot 3. Our higher level hash table operation trace looks like this. Thread 0 inserts Key 25 and
+then finds keys 25 and 15. Thread 1 finds Key 35, followed by inserting Key
+35 and then finding Key 25. Thread 2 tries to
+find keys 45 and 25. We compare the total logical
+time steps required for each locking protocol to complete the same
+set of operations. Lower the number of time
+steps, better the protocol. On this operation trace, the global mutex
+protocol takes 30 steps. The mutex per slot
+protocol takes 21 steps, and the shared mutex per slot protocol only
+takes 15 steps. The global mutex protocol
+takes the highest number of logical time steps because it serializes all access
+to the hash table, forcing threads to execute
+strictly one at a time. For example, at time step 15, Thread 2 is waiting
+for the table lock while Thread 1 is
+axing the table. The mutex per slot
+protocol takes significantly fewer
+time steps compared to the global lock because it
+allows concurrent operations on different slots of the hash table, thereby
+reducing contention. For example, in time step 7, Thread 0 is working on Slot 6 and Thread 1
+is working on Slot 5. Finally, the shared
+lock per slot protocol minimizes the number of
+logical time steps the most. This is because it allows
+multiple reads simultaneously on a given slot unless a write
+operation is taking place, and that is helpful as the workload has several
+read operations. For example, in time step 7, threads 0 and 2
+are simultaneously given read access to Slot 6. So that wraps up this lesson. Using the simulator, you can compare the performance
+of these protocols on other operation traces and
+improve your intuition about concurrency
+control protocols and multi-threaded environments. We learned about how the
+choice of locking protocol significantly impacts the time taken to complete the
+hash table operations. Fine grained concurrency
+control with a shared mutex delivers
+the highest performance.
+ 
+>> In this module, we explore the key
+ideas behind building a thread-safe hash
+table in bus DB. We talked about the
+importance of thread safety and how to avoid race conditions in a multi-threaded environment. We covered fine-grained
+locking and how it improves the
+concurrency of the hash index. We then discussed about
+shared mutexes and how they allow multiple read operations to happen simultaneously
+in the hash table. Lastly, we used a simulator to qualitatively
+compare the time taken to finish a set of hash table operations with different concurrency
+control protocols.

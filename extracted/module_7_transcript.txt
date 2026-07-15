@@ -1,0 +1,568 @@
+>> In this module, we
+will explore the B+ tree, another powerful data structure used for indexing in
+database systems. We will begin by
+discussing range queries and why B+ trees are ideal
+for processing these queries. Then we will cover the idea
+of an ordered index and how B+ trees maintain sorted data to improve
+retrieval speed. Next, we will dive into the structure of
+the B+ tree itself, examining how it
+maintains keys in sorted order and supports
+logarithmic search times. We will then look
+at notes splitting, a critical mechanism
+that B+ trees use to stay balanced and efficient as the size
+of the index grows.
+
+>> In this lesson, we will
+introduce range queries and explain why
+it is challenging to process range queries
+using a hash table. Range queries retrieve
+all tuples in a table, where a particular column falls within a specified
+range of values, hence the term range queries. In contrast, point queries or queries that retrieve
+all tuples in a table where a
+particular column is equal to a single
+specific value. For example, imagine
+needing to retrieve all the products priced
+between $10 and $20. That is a range query based on the starting
+and ending prices. Instead, if you want to retrieve all the
+products priced $30, that is a point query. In geometry, a range
+refers to a stretch of space between two points
+in the number line. Similarly, a range query looks
+for all the tuples where the price of product lies
+between $10.20 dollars. A point refers to a specific
+location in the number line. This idea translates directly to the term point
+query where you're looking for a very
+specific value like products priced $30. As a pawn query targets
+a specific number, it is possible to
+answer the query using a constant time
+lookup in the hash table. For example, to find
+products price $30, we can look up the key 30
+in the product hash table. Here, the key is the
+price and the value is the IDs of all the product
+tuples with that price. For example, products with IDs
+103 and 105 are price $30. The values returned
+by the lookup will be the IDs of all the tuples
+whose price is $30. Unlike point queries, processing range queries using
+a hash table is very slow. This is because
+the hash table is not ordered with
+respect to the key. For example, key 30 is in slot zero and key 12 is in slot two. For finding all the
+products priced $10-20, we need to go over the
+entire hash table, checking each key to check if it falls within
+the desired range. While this method
+is straightforward, it is very slow because every entry in the
+hash table must be examined. Let's
+look at the code. Here, the range
+query function in the hash index class
+takes two parameters, lower bound and upper bound, which define the range of keys to search for
+in the hash table. The function searches through
+the entire hash table, checking every slot to see if it contains a key within
+the specified range. If a slot contains a key
+that falls within the range, the value associated with that key is added to
+the results vector. For example, the IDs of the products with that
+particular price. After checking all the slots, the function returns
+this results vector. We can use this inefficient
+range query method in bus DB to process range
+queries with a hash index. We just pass the lower bound and the upper
+bound values to the range query function in the hash index like 10 and $20. To recap, in this lesson, we presented the idea
+of range queries and highlighted the challenges of processing range queries
+using a hash table.
+
+>> In this lesson, we will learn about how to build an index ordered with respect to the key so that we can efficiently
+support range queries. We will introduce the
+B+ tree data structure for building an ordered index. An ordered index maintains data in sorted order
+based on the key. So it can support fast range
+queries where we need to find all the records where the key falls in a
+specified range, like $10 and $20 dollars. In contrast, an
+unordered index like a hash table does not maintain
+data in sorted order, that's why it cannot
+support fast range queries. To process the range
+query using a hash table, we need to go over all the
+keys in the hash table. B+ tree is a widely
+used data structure for building an ordered index. A B+ tree data
+structure looks like an inverted tree with the root node at the top and the leaf
+nodes at the bottom. A B+ tree is a balanced
+tree structure, meaning that all the leaf nodes are at the same distance
+from the root node. Here, the height of
+the tree is two. All the leaf nodes are two
+hops away from the root node. Since all the leaf nodes with the actual data are
+at the same level, B+ tree supports uniform
+search time for all the keys. Each node in a B+ tree can
+hold multiple keys and values. This number is known as
+the fanout of the tree. In the tree shown here,
+the fanout is three. In practice, the fanout
+of a B+ tree can be as high as 100
+or even 1,000 keys. Because of this high fanout, the height of the tree with lots of keys is still very small, often just three or
+four levels tall. Each node in a B+ tree is
+towed as a separate disk page. Due to the tree's high fanout, the height of the tree is small, so to access any leaf node, we only need to do
+three discretes. The values in each node vary based on whether it is a
+leaf node or an inner node. In a leaf node, the values are
+actual values being stored in the index
+like tuple IDs. For the non leaf nodes, also known as inner nodes, the values are pointers
+to other nodes. In the inner nodes, there are two keys and three pointers. In general, that maps to
+K-1 keys and K values. So the inner nodes
+have one fewer key. In the leaf nodes, there are three keys
+and three values. In general, that maps
+to K keys and K values. All the leaf nodes of the
+B+ tree are linked to each other to facilitate efficient traversal
+during range queries. B+ tree support
+fast range queries because they keep the
+keys in sorted order, and all the leaf nodes are
+linked via sibling pointers. Let's look at the code. We first traverse down the tree to the appropriate leaf node
+with the lower bound key. Then we traverse the
+leaf nodes using the sibling pointers
+until we find a key greater than
+the upper bound key. In this way, we gather all the keys that fall
+within the range. Unlike a hash table where we need to go over
+the entire index, in a B+ tree, we only go over the subset of the index
+with the relevant keys. For example, if you are
+looking for keys in the range of 6-23, inclusive of those bounds, so the lower bound key is six and the upper bound key is 23, we first traverse
+down the tree to the appropriate leaf
+node with Key 6. During traversal, we
+first compare Key 6 against kKey 20
+in the root node. Since six is smaller than 20, we follow that pointer down
+to the next inner Node 2. Here we compare it against five. Since six is greater than five, we compare against
+the next Key 11. Since six is smaller than even, we follow that pointer
+down to leaf Node 3. Here we retrieve the keys six and seven from
+the leaf Node 3. We then follow the
+sibling pointer to the next leaf Node 4. Here, we retrieve the
+keys 11, 17, and 19. Since 19 is still
+smaller than 23, we move to the next leaf Node 5. Here we retrieve
+the keys 20 and 21. Since 21 is still
+smaller than 23, we move on to the
+next leaf Node 6, where we retrieve the key 23. Since 24 is larger than 23, we stop the leaf node traversal. In this way, we
+gather all the keys that fall within the range, 6, 7, 11, 17, 19, 20, 21, and 23. That wraps up this lesson. In this lesson, we
+learned about what is an ordered index
+and how to build an ordered index using the
+B+ three data structure.
+
+>> In this lesson, we
+will learn about how to implement the B+ Tree
+data structure in C++. In particular, we'll
+be implementing the B+ Tree using a
+template class in C++. Template is a powerful feature in C++ that enables
+generic programming. By using templates, developers
+can create functions and classes that work with any data type without being
+rewritten for each type. For example, here, we define a simple add function that can add two elements of any type T. T acts as a placeholder for a data type that is not specified until the function
+is instantiated and used. This means that we can
+use the add function with any type that supports
+the addition operation. For example, we can
+instantiate T with integer. So both A and B are integers, the function adds five and
+three and returns eight. With T as STD string, the add function
+concatenates two strings. Since plus operator is not defined by
+default for strings, if you overload
+the plus operator for strings to perform
+concatenation, then this function would
+return hello world. We implement B+ Trees using C++ templates to support
+arbitrary key and value types. So key and value types can
+be integer and integer, or they can be string
+and integer, etc. These placeholder types will be replaced by concrete
+types at compile time. Templates allow the creation of a generic B+ Tree that can
+handle any key and value type, thereby enhancing code
+reusability and maintainability. We do not have to implement a separate B+ Tree class for integer key and value and
+string key and value. This illustrates the power of generic programming
+using templates. Similar to the add function, the B+ Tree class
+template can be instantiated with different
+types for keys and values. For example, it could be used to map employee IDs
+to their salaries. Here, both employee ID
+and salary are integers. When a new employee is hired, their ID and salary are added to the B+ Tree using the insert or update
+method in the index. Similarly, it is possible
+to do a quick lookup of any employee's salary using their ID through the
+get value method. Here's another example of B+ Tree template instantiation
+in a retail store context. Here we map product
+names to their prices, product names or strings
+and prices or integers. For example, we can
+insert the price of an Apple iPhone and later
+retrieve it when needed. This example shows
+how the B+ Tree can be easily used for
+different data types. Here's a more interesting
+example on using the B+ Tree template for a
+ticket reservation system. Here we define a user
+defined type ticket key. Ticket key comprises an even
+date and a seat number. It is important to define the comparison operator
+for the ticket key struct. This comparison
+operator is needed to sort the ticket keys
+within the B+ Tree. The overloaded comparison
+operator compares the even date and seat numbers
+and returns a Boolean. Later, we can insert
+and query about tickets and the people who bought the tickets
+using the index. For example, here we are able to retrieve the
+details about who booked seat number 101
+on a particular date. This example illustrates how
+B+ Trees can accommodate complex user defined data types beyond the basic
+data types in C++. In the next version of BuzzDB, we implement an ordered
+index using a B+ Tree. The index class supports
+inserting or updating key value pairs and performing range queries
+over the database. The ordered index class internally encapsulates
+the B + Tree. In this lesson, we learned about how to start implementing the B+ Tree data structure
+using templates in C++. We discussed about how
+generic programming using templates significantly improves code reusability
+and maintainability.
+
+>> In this lesson, we will
+learn about the structure of B+ tree nodes and how to
+insert a key into the B+ tree. A B+ tree is a collection of
+leaf nodes and inner nodes. In an inner node, the values
+are pointers to other nodes. Since the B+ tree is stored on disk and each node is
+stored as a separate page, the pointers to the
+nodes are page IDs. In this example, we are mapping keys less than 20 to page 5, keys greater than 20 and
+less than 25 to page 10, and keys greater
+than 25 to page 15. In inner nodes, the
+number of values is one more than
+the number of keys. In a leaf node, the values are actual values
+like tuple IDs. For example, here we are
+mapping one to Tuple 310, two to Tuple hundred and
+two and four to Tuple 115. In leaf nodes, the
+number of keys is equal to the
+number of values. The template based B+ tree will be able to support any
+key and value types. For example, we can build an index on a database
+configuration file. Here, the key type and value
+type are both strings. For example, the
+max file size is 10 MB and the default language
+is English and so on. Let's refer to each key
+value pair as an entry. Here's the code snippet for
+a B+ tree entry in C++. Each entry has a key. If it is an entry
+in a leaf node, then it has the actual value
+in the value variable. If it is an entry
+in an inner node, then it has a node pointer, which points to a child
+node in the next variable. Here's the code snippet
+for a B+ tree node in C++. This structure contains
+an S leaf boolean that indicates
+whether the node is a leaf node or an inner node. Each node contains a
+vector of entries. Each entry is a key value pair where the value is a pointer in case of an inner node or an actual value in
+case of a leaf node. Each node has a next pointer
+that is used for linking the leaf nodes for sequential reversal while
+answering range queries. The process for inserting a key value pair in
+the tree is recursive. It starts at the root node and traverses down to the
+appropriate leaf node. At each step in the recursion, the function navigates down the tree by recursively
+calling itself with the chosen child node
+until it reaches a leaf node. Let's say we want to insert Key 22 with the value
+Z into the tree. In step 1, we start the recursion
+at the root node. We compare 22 against 20. Since 22 is greater than 20, we then compare 22 against 25. Since 22 is smaller than 25, we follow that child pointer. In step 2, we reach the inner node. We compare 22 against 23. Since 22 is smaller than 23, we follow that child pointer. In step 3 of the recursion, we reach a leaf node. Here, we insert Key 22 and value Z at the appropriate position
+within the leaf node. Let's look at the
+code in bus DB. The insert or update function
+takes in a key and a value. It then calls the recursive
+function insert or update internal with the root node as the input in the first
+step of the recursion. The insert or update
+internal function focuses on a particular
+node in the B+ tree. In an inner node, the tree must decide which child
+node path to follow. Here, the itrator IT itrates over all the
+entries in the node. If the key being
+inserted is less than the key currently
+pointed by the itrator, then we follow that child node
+using the next pointer and recursively call the insert or update internal function
+with that child node. Finally, after we
+reach a leaf node, we perform a binary search across all the keys already
+stored in the leaf node. If the key does not exist, we insert it at the correct point to
+maintain the sorted order. If the key already
+exists in the node, then we just update the value
+associated with the key. In this way, the keys are always kept sorted within the nodes. To do binary search and insert the key at the
+appropriate position, we first define a
+Lambda function comp for comparing keys. A Lambda function is an
+anonymous function defined at the point of use rather than
+being declared with a name. It is especially useful for short functions that are
+not reused elsewhere. The comparator Lambda function takes two parameters; entry, which is an object of entry type from the nodes entries and K, which represents the key with
+which we want to compare. The Lambda returns true
+if entry.k is less than K. This comparator is used to maintain the order of
+keys within the node. We use the SDD lower_bound
+function to find the correct position in the nodes entry list where the new key value
+pair should be inserted. It searches from the
+beginning to the end of the entries vector using the comparator comp to ensure that the
+entries remain sorted. The SDD lower_bound
+function returns an iterator pointing to the first element that is
+not less than the key. Once the correct
+position is found, the new key value pair
+encapsulated within an entry object is inserted at the position indicated
+by the iterator IT. This ensures that the
+nodes entry spector remains sorted after
+the insertion, which is critical
+for maintaining the sorted order of
+keys in the leaf node. To recap, in this lesson, we explored the
+internals of B+ tree, focusing on the structure of inner leaf nodes and discussed about the
+insertion process.
+
+>> In this lesson, we will learn to process range
+query using the B+ tree. We will first present a knife-inefficient
+technique for processing the range
+query using the B+ tree. We will then discuss about a more efficient way to process
+the query using the tree. To process range query
+using the B+ tree, a naive way is to
+just traverse down to the leftmost leaf node and keep traversing across
+all the leaf nodes. For example, consider range
+query for keys greater than or equal to 19 and less
+than or equal to 23. The naive approach is
+to traverse down to the leftmost leaf
+node in Steps 1, 2, and 3 and then we traverse across all the leaf
+nodes in Steps 4, 5, 6, 7, 8, and 9. Now, why is this
+approach not efficient? That's because it
+always descends to the leftmost leaf with
+the smallest key, regardless of the
+ranges lower bound, which is 19 in this example. It keeps traversing across
+all the leaf nodes, regardless of the
+ranges upper bound, which is 23 in this example. Let's look at the code. We traverse to the
+leftmost leaf node by continuously moving to
+the first child node of each internal node. Entries.front().next. Until
+a leaf node is reached, that this leaf is true. Once at the leftmost leaf node, the code then iterates through all the
+connected leaf nodes, moving horizontally by following the next pointers
+of the leaf nodes. This loop continues until
+there are no more leaf nodes. That is while current
+node is not null pointer. A much more efficient
+way to process a range query is to start
+looking at the leaf node that corresponds to
+the lower bound of the query range instead of starting from
+the leftmost leaf. In this way, we can skip all the irrelevant nodes with keys less than the lower bound. For example, consider the same range query
+for keys greater than or equal to 19
+and less than 24. Now we traverse down
+to the leaf node with 19 in S 1, 2, and 3. And we stop traversing
+the leaf nodes when the key is higher
+than the upper bound. So we check the leaf
+nodes in Steps 4 and 5 and stop the traversal
+when we see key 24, which is greater than 23. This targeted traversal reduces the number of B+
+three nodes visited. As each node is a page on disk, this means we retrieve fewer pages from disk
+to answer the query. There are two steps for
+efficient range processing. First, we do a
+vertical traversal navigating down the tree
+from the root node, moving through the
+internal nodes by comparing the lower bound
+with the key at each node. This continues until the
+leaf level is reached, ensuring that the traversal is as direct and
+minimal as possible, targeting only the
+relevant nodes. So the vertical traversal
+consists of Steps 1, 2, and 3. Once we reach the leaf node, we do a horizontal traversor across all the
+linked leaf nodes. We stop the traversal
+when the key is larger than the upper bound so this horizontal
+traversal captures all the keys that fall
+within the specified range, leveraging the sorted
+ordering of keys in the tree, which is ideal for
+processing a range query. So the horizontal
+traversal consists of steps four and five. This targeted traversal reduces the number of nodes visited, as each node corresponds
+to a page on disk. This means we
+retrieve fewer pages from disk to answer
+the range query. To recap, in this lesson, we explored two
+different ways for processing a range
+query using a B+ tree. We learned about how
+a B+ three provides an efficient access path for retrieving a subset of key value pairs
+stored in the index.
+
+>> In this lesson, we
+will discuss about how to split a BPlusTree
+node when inserting a key into the node that causes the node's key count to
+exceed its maximum capacity. Node splitting is important for maintaining the balance
+of the tree so that all the leaf nodes are at the same level and can be accessed quickly in
+logarithmic time. In the next version of buzzDB, we keep the keys and values in separate vectors
+in the node struct. The BPlusTree class
+is defined using a template to handle generic
+key and value types. Both leaf nodes and inner
+nodes have a vector of keys, but they differ in their values. While leaf nodes have
+a vector of values, inner nodes have a
+vector of node pointers. During insertion, if
+adding a key into a leaf node leads to
+exceeding its capacity, then the leaf node must be split to maintain
+the tree's balance. For example, let's say
+we want to insert key 8 with value Z in this tree. We traverse down through the appropriate leaf
+node in steps 1, 2, and 3. Now, this node already
+contains three keys. When we try to add another key, we break the requirement that all leaf nodes can only
+contain at most three keys. So we must split this node. This split involves redistributing
+keys into a new node. Here, we put keys 5 and 6 in one node and keys seven
+and eight in another node. Next, we also need to
+add a separator key, which is key seven in this
+case, in the parent node. It is possible that adding
+the separator key in the parent node
+leads to exceeding the capacity of the
+parent node as well. For example, here, adding
+seven in the parent node leads to a split as the maximum number of keys
+in an inner node is two. So this split involves redistributing the keys in the
+root node into a new node. Here, we put key 7 in one node and key 25
+in another node. The new root node will
+have two children, and the single
+promoted median key 20 becomes the only key
+in the new root node. Effectively, this increases the height of the
+BPlusTree by one. In this way, we keep
+the tree balanced by increasing its height uniformly
+across all the parts. Let's look at the
+code in buzzDB. After insertion, if a node capacity exceeds its capacity
+determined by max keys, then the node is split. This involves modifying
+the tree structure, potentially propagating
+changes up the tree as needed. During insertion,
+we keep track of all the nodes visited along
+the way in the path vector. This path vector is crucial for backtracking up the tree
+during a node split operation. The std upper-bound function finds the child
+node that should be traversed next by determining the first key that is
+greater than the input key. For example, here, the path
+vector contains nodes X, Y, and Z that were accessed
+during the search for the correct position
+to insert a new key 8. This path helps in
+revisiting those nodes, particularly when
+node splits need to be propagated
+back up the tree. During backtracking, we start from the leaf node
+Z where the split occurred and move
+up the tree using the recorded path vector
+to nodes Y and X. We update the parent
+nodes as necessary to accommodate new separator
+keys from split nodes. Once the correct leaf
+node is reached, we determine the
+precise insertion point using std lower-bound. This helps keep the nodes
+key in sorted order. If the key exists, its value is updated. If not, the new key value pair is added in its sorted position, maintaining the ordering
+of keys within the node. If the insertion causes the node's key count to
+exceed its maximum capacity, a split is triggered. The node is divided into
+two with half the entry staying in the original node and the rest moving to
+a new leaf node. Here, we move the second half of keys and values
+to a new node. We also maintain
+the next pointers between the leaf nodes. The next pointer
+of the new node is set to the next pointer
+of the old node, effectively inserting it into the link list of leaf nodes. This split might
+propagate up the tree. In inner nodes, the split redistributes the
+children pointers. A median key is identified
+and moved up to the parent node to act
+as a new separator key. This ensures that the
+tree remains balanced. If the parent node is full as a result of
+receiving the new key, it must also be split. While backtracking, we use the path vector to
+determine the parent node. When the insertion of the
+median superior key into the parent node causes the parent node to
+exceed its capacity, the split recurses up the tree. At each step in the recursion, we remove one node
+from the path vector. This recursion can go all
+the way up to the root node. If the split occurs
+at the root node, as there is no parent
+node by definition, the path vector is empty. In this case, a new root node is created with the median key. This new root node has a single promoted median
+key as the only key. It will have two children, one bound to the old root node, and another bound to
+the newly created node. Effectively, this
+increases the height of the tree by one. This keeps the tree
+balanced by increasing its height uniformly
+across all the parts. To recap, in this lesson, we discussed about how a
+plus three maintains balance even after a node split. This is crucial for maintaining the logarithmic
+time complexity for searches and ensuring that range queries are
+efficiently processed.
+
+>> In this lesson, we will learn about how to adapt the in-memory B+ tree to an on-disk B+
+tree to ensure durability. We will discuss about
+how an on-disk B+ tree supports key lookups with a
+small number of discretes. There are two important reasons for coming up with
+an on-disk B+ tree. An on-disk B+ tree is important for indexing
+large tables, unlike an in-memory
+B+ tree index that is constrained by DRAM size, on disk B+ tree
+index can leverage the large storage
+capacity of disk, so we can index large tables. Another reason why
+we need an on-disk B+ tree is to ensure the
+durability of the index. In memory B+ tree
+disappears when the system crashes because
+DRAM is volatile. We must rebuild the index when the database
+system restarts, for instance, from
+a power failure. To avoid rebuilding
+all the indices when the system restarts, we need an on-disk
+B+ tree that remains intact even after the system
+shuts down and restarts. So how do we adapt the B+
+tree for disk storage? First, we must align
+the node size of the B+ tree with the
+size of a disk block, which is typically
+four kilobytes. This ensures that each node
+maps to one page on disk. Second, we need to serialize
+the contents of the in-memory node into a format
+suitable for disk storage. This serialization
+involves translating in memory pointers into file offsets so that the node can be stored and read
+back from a file on disk. Understanding the space
+each node occupies is important for aligning
+it with disk block size. This formula shows the
+size of a node struct with m keys and n+1 values. Each key and value takes
+four bytes respectively. We have to reserve space
+for an additional value, so that's four bytes. Additional node metadata
+takes up to nine bytes. The overall formula
+is 8*m+13 bytes. Now we can calculate
+the number of keys that a node can
+store using this formula. If the page size
+is four kilobytes, then m is around 510 keys. If it's an SSD and the disc
+page size is 16 kilobytes, then m is around 2046 keys. This is how we align a B+ tree
+node with a page on disk. B+ trees are really
+wide and super short in practice because
+of their high fanout. If the fanout is 510 and the
+page size is four kilobytes, then a tree with just
+three levels can have 510 into 510 leaf nodes. This roughly maps to a one GB
+file with 132 million keys. If the tree has four levels, then that maps to half a terabyte file
+with 67 billion keys. Next, let's look at
+the serialization and deserialization
+aspects of a B+ tree. The serializeNodeToBytes
+function takes a disc node object
+and converts it to a byte stream represented
+as a vector of bytes. We iterate over each
+key in the node, converting them to bytes and
+opening them to the vector. We do the same for
+values and so on. Since node pointers cannot be directly returned
+to a byte stream, we convert them to
+file offsets that indicate where in the file
+the node can be found. The serialization
+process ensures that all the
+components of the node are linearized into
+a contiguous block of memory ready
+for disk storage. Deserialization is the
+inverse of serialization converting a byte stream back into a structured
+in-memory node. This process is important
+when a node needs to be loaded back into
+memory from disc. The deserialization node from bytes function takes
+a byte stream as input and converts it back into an in-memory
+disc node object. The function uses
+SDD MM copy to copy bytes directly into the
+target data structures. If key or value types are
+variable in size like strings, then the serialization and deserialization
+functions would need to accommodate this by additionally storing
+metadata about the sizes within
+the byte stream. The file layout shown
+here represents how B+ tree nodes
+can be stored in a file on disk with each node occupying a
+fixed-sized disk block. The file offset indicates
+the starting position of each node in the
+file measured in bytes. The offsets increase in
+multiples of the disc page size, which is four kilobytes here. As nodes are stored one
+after another in the file, it is easy to calculate the
+disc offset for a node. More importantly, the
+offset-based storage also allows for random access of
+nodes like nodes 1 and 5, which is crucial
+for tree operations that may need to access various parts of
+the tree quickly without reading all the
+intervening nodes from the file. Next, let's look at how
+to minimize the number of disk operations with
+an on-disk B+ tree. We can reduce the number of
+disc operations in two ways. First, we can use a
+buffer manager to cache frequently accessed
+B+ tree notes in memory, like the root node and
+its immediate children. For example, here
+we have a bunch of notes cached in DRAM. The high fanout of B+ trees reduces their overall height to typically three
+or four levels. To access a random key, since the top 2 levels are
+already cached in memory, we only need to read the
+leaf node from disk. For example, while looking
+up a key in node 4, we first need to access
+node 1 and node 5. But as nodes 1 and 5 are already there in the
+in memory buffer pool, we only need to fetch
+node 4 from disk. Second, we can write
+back updated notes back to disk lazily only
+when it is necessary. For instance, when
+the nodes page has to be evicted
+from the buffer pool. Lazy writing helps
+improve performance and reduces disc wear by lowering the frequency
+of disc writes. For example, we can
+evict node 2 from the buffer pool only when we run out of space in
+the buffer pool, and if node 2 has been modified. If node two has not been
+modified and was only read, then we can just discard it from the buffer pool and not
+even write it back to disk. B+ trees work really
+well on a disc. This is not a surprise. In fact, B+ trees were
+designed for storage on disk. It's a natural generalization of a binary search tree to disk. As all the leaf nodes are at the same height,
+all the lookups, insertions, and deletions involve a predictable number
+of disc reads and writes. The high fanout of B+ trees
+reduces their overall depth, thereby decreasing the
+number of disc operations needed for most operations
+during vertical traversals. Lastly, the link nature of leaf nodes facilitates
+efficient scans for range queries and eliminates loading
+unnecessary pages from disc. In this lesson, we explore
+how to adapt the B+ tree to disk so that we can achieve
+scalability and durability. We discussed about
+the serialization and deserialization logic
+and highlighted how all the B+ tree
+operations typically involve only a small number
+of disc reads and writes.
+
+>> In this module, we
+learn the fundamentals of B+ trees and how they support efficient data retrieval
+in database systems. We introduced the idea of range queries and
+discussed about how B+ tree efficiently supports these range queries by keeping
+keys in sorted order. We then went over the
+structure of the B+ tree, focusing on the structure of the nodes and the recursive
+key insertion process. We also learned about
+nodes splitting, which is crucial for maintaining the logarithmic
+time complexity for searches and ensuring that range queries are
+efficiently processed.

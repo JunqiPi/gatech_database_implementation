@@ -1,0 +1,715 @@
+1
+1 / 1分
+选择题
+```cpp
+bool parse_user_row(const std::string& line) {
+std::stringstream ss(line);
+std::string id, name, loc, extra;
+std::getline(ss, id, ',');
+std::getline(ss, name, ',');
+std::getline(ss, loc, ',');
+ 
+if (std::getline(ss, extra, ',')) return false; // Extra read
+return true;
+}
+```
+When parsing a CSV row, the function explicitly attempts an extra `std::getline` call after reading the three required columns, immediately returning false if it succeeds. Why?
+ 
+To extract the hidden primary key UUID that BuzzDB secretly appends to the end of every CSV row.
+，未选择
+ 
+Because the standard library `std::stringstream` automatically throws a fatal `std::out_of_range` exception if it encounters unread delimiters before the end of the line, which crashes the database.
+，未选择
+正确答案：
+ 
+To rigorously enforce the schema by detecting and rejecting rows that contain more comma-separated fields than expected.
+ 
+To automatically consume and ignore the hidden carriage-return (\r) character appended by Windows text editors.
+，未选择
+位置2的问题的结果。
+2
+0 / 1分
+选择题
+Consider a Page-like object used in BuzzDB:
+ 
+struct Page {
+std::unique_ptr<char[]> data; // PAGE_SIZE bytes
+uint32_t len; // payload length <= PAGE_SIZE
+};
+ 
+Serialization writes the page to disk, and deserialization allocates a fresh buffer and reads bytes into it.
+Which statement about std::unique_ptr and serialization is NOT correct?
+ 
+Passing/moving a std::unique_ptr into a write function serializes the pointed data.
+，未选择
+ 
+Serialization must write values (len and the byte payload) and reconstruct a new buffer on load.
+，未选择
+ 
+std::unique_ptr does not constrain the on-disk page format.
+，未选择
+错误答案：
+ 
+Serializing the raw pointer value is meaningless across runs.
+正确答案：
+Passing/moving a std::unique_ptr into a write function serializes the pointed data.
+位置3的问题的结果。
+3
+0 / 1分
+选择题
+A page/segment format writes the tuple-count metadata after all tuple bytes (no header pointer to the footer). What is the likely impact on deserialization?
+ 
+The reader must scan/seek to the end to discover the tuple count, complicating deserialization.
+，未选择
+错误答案：
+ 
+Deserialization becomes faster because the reader can skip the metadata entirely.
+正确答案：
+The reader must scan/seek to the end to discover the tuple count, complicating deserialization.
+ 
+There is no impact; the OS page cache provides the count transparently.
+，未选择
+ 
+Security improves because the tuple count is not placed until all data is read.
+，未选择
+位置4的问题的结果。
+4
+0 / 1分
+选择题
+The Field class implements a copy constructor that performs a deep copy of its internal string. Which of the following statements about this design is NOT correct?
+ 
+Deep copy semantics make it safe to pass Field objects by value without worrying about lifetime or aliasing issues.
+，未选择
+ 
+Deep copy minimizes memory usage by sharing common buffers among multiple Field objects.
+，未选择
+ 
+Deep copy ensures each Field object has its own independent data, preventing unintended sharing and side effects.
+，未选择
+错误答案：
+ 
+Deep copy avoids dangling pointers by ensuring that when one Field is destroyed, other copies still hold valid data.
+正确答案：
+Deep copy minimizes memory usage by sharing common buffers among multiple Field objects.
+位置5的问题的结果。
+5
+1 / 1分
+选择题
+SSDs significantly reduce the penalty of random I/O compared to HDDs. Which of the following statements about buffer management priorities on SSD-backed systems is NOT correct?
+正确答案：
+ 
+Configuring the size of the buffer pool to align with the needs of the workload is not as critical as with HDDs.
+ 
+Sophisticated sequential prefetching becomes less critical because random page fetches are already fast.
+，未选择
+ 
+Batching dirty page flushes can reduce write amplification and improve SSD lifetime.
+，未选择
+ 
+Caching frequently accessed pages in memory remains important, since SSDs are still slower than DRAM.
+，未选择
+位置6的问题的结果。
+6
+1 / 1分
+选择题
+Consider this function:
+ 
+void risky() {
+auto buf = std::make_unique<char[]>(4096); // allocate buffer
+// ... fill buf, maybe write to a stream ...
+throw std::runtime_error("fail"); // exception occurs here
+// more code (never reached)
+}
+ 
+Which statement about std::unique_ptr in this scenario is NOT correct?
+ 
+When the exception is thrown, stack unwinding destroys buf and frees the 4096-byte allocation—no manual delete[] is needed.
+，未选择
+正确答案：
+ 
+To avoid a memory leak here, delete[] must be called on buf inside the catch block; otherwise the allocation persists.
+ 
+If ownership had been moved (e.g., `return buf;`) before the throw, the new owner would free the memory; if the throw happens before the move, this scope frees it.
+，未选择
+ 
+RAII applies regardless of where the exception is thrown: as buf goes out of scope during unwinding, its destructor releases the allocation.
+，未选择
+位置7的问题的结果。
+7
+0 / 1分
+选择题
+A Document class holds text in std::string (pointer-backed) and serializes to disk as [length][bytes].Which statement best captures the distinction between in-memory and on-disk representations?
+错误答案：
+ 
+On-disk format keeps file-relative pointers for random access, mirroring the in-memory layout for speed.
+正确答案：
+In memory, std::string uses pointers/capacity for dynamic growth; on disk, data is linearized into a byte stream with length, so raw pointers are neither stored nor meaningful.
+ 
+In memory, std::string uses pointers/capacity for dynamic growth; on disk, data is linearized into a byte stream with length, so raw pointers are neither stored nor meaningful.
+，未选择
+ 
+To avoid copies, the serializer writes the std::string's pointer value and reconstruct the same address on load.
+，未选择
+ 
+Both in-memory and on-disk forms preserve pointers so that rollbacks can restore prior addresses after failures.
+，未选择
+位置8的问题的结果。
+8
+1 / 1分
+选择题
+Which statement about encapsulation and modularity in a database system is NOT correct?
+ 
+Encapsulation hides internal data structures (e.g., file streams) behind a stable API, allowing implementation changes without breaking clients.
+，未选择
+正确答案：
+ 
+Encapsulation should be avoided for performance by ensuring that all the developers agree not to misuse internal data structures.
+ 
+Modularity improves maintainability by separating concerns, such as isolating the storage manager from the query processor.
+，未选择
+ 
+Modularity allows components to evolve independently as long as their interface contracts remain unchanged.
+，未选择
+位置9的问题的结果。
+9
+1 / 1分
+选择题
+Which statement about OLTP workloads is NOT correct?
+ 
+They target high transactional throughput with tight tail-latency SLO (service level objective).
+，未选择
+ 
+They emphasize short, latency-sensitive transactions and point reads/writes.
+，未选择
+正确答案：
+ 
+They are primarily long scan-heavy transactions.
+ 
+Occasionally long analytical queries may appear but do not dominate the workload.
+，未选择
+位置10的问题的结果。
+10
+1 / 1分
+选择题
+Given the query and indexes:
+ 
+SELECT u.Username, COUNT(p.PostID) AS NumberOfPosts
+FROM Users u JOIN Posts p ON u.UserID = p.UserID
+WHERE u.Location = 'New York'
+GROUP BY u.Username;
+ 
+Assume: Users has indexes on (UserID) and (Location); Posts has an index on (UserID).
+Which modification to the database's physical database design is most likely to improve performance?
+ 
+Replace the join with a subquery so the optimizer can push down the filter on Location earlier.
+，未选择
+ 
+Remove the Users(Location) index to reduce maintenance overhead during writes.
+，未选择
+正确答案：
+ 
+Add a composite index on Users(Location, Username) to accelerate grouping.
+ 
+Update Posts index from (UserID) to (PostID), since aggregation counts PostID.
+，未选择
+位置11的问题的结果。
+11
+1 / 1分
+选择题
+Slotted pages in DBMSs use a slot directory mapping slot IDs to (offset, length). Which of the following statements about this design is NOT correct?
+ 
+Slot directories allow logical deletions by marking slots free without physically shifting other tuples immediately.
+，未选择
+ 
+The slot directory enables tuple movement during page compaction while preserving stable slot IDs for upper layers.
+，未选择
+ 
+Slot directories add a level of indirection, which slightly increases lookup cost but that is significantly lower than scanning an array of variable-length records.
+，未选择
+正确答案：
+ 
+Slot directories ensure that tuples can grow in place without relocation, reducing fragmentation.
+位置12的问题的结果。
+12
+1 / 1分
+选择题
+Given a flat-file database with separate files for Users, Posts, and Interactions, which choice best captures the normalization benefit when moving to a relational DB implementation?
+正确答案：
+ 
+Eliminate repeated user attributes from Posts/Interactions by storing them once in Users and relating via foreign keys, preventing update anomalies.
+ 
+Introduce a materialized view that pre-joins Users and Posts so queries never need joins.
+，未选择
+ 
+Keep duplicated user attributes and make it easy to add a trigger to update all duplicates on change.
+，未选择
+ 
+Embed Interactions as a column inside Posts to avoid multi-table lookups.
+，未选择
+位置13的问题的结果。
+13
+0 / 1分
+选择题
+C++ provides reinterpret_cast for low-level conversions, replacing C-style casts in modern code. Which statement about why reinterpret_cast is preferred is NOT correct?
+ 
+reinterpret_cast makes potentially dangerous conversions explicit, improving readability and signaling that the programmer is taking responsibility.
+，未选择
+ 
+Unlike C-style casts, reinterpret_cast only performs reinterpretation; it does not silently combine const_cast, static_cast, or downcasts, making its effect clearer.
+，未选择
+ 
+reinterpret_cast is a portable and safe mechanism for converting any pointer type to any other pointer type as long as the sizes match.
+，未选择
+错误答案：
+ 
+Using reinterpret_cast makes code easier to audit because reviewers can quickly identify non-trivial bit-level type conversions.
+正确答案：
+reinterpret_cast is a portable and safe mechanism for converting any pointer type to any other pointer type as long as the sizes match.
+位置14的问题的结果。
+14
+1 / 1分
+选择题
+For a funds-transfer transaction (debit A, credit B), what does atomicity guarantee?
+ 
+Balances are always application-level consistent (e.g., non-negative) throughout execution.
+，未选择
+正确答案：
+ 
+Either both updates take effect or neither does; no partial effects remain if the transaction aborts.
+ 
+No other transaction can read intermediate states produced by this transfer.
+，未选择
+ 
+Once committed, the new balances survive crashes and power loss.
+，未选择
+位置15的问题的结果。
+15
+0 / 1分
+选择题
+BufferManager uses a polymorphic policy pointer (e.g., FIFO/LRU/2Q). Which statement is NOT correct?
+错误答案：
+ 
+It narrows the surface area for testing by isolating policy-specific invariants.
+正确答案：
+It allows swapping policies at compile time. at runtime the choice cannot change without relinking.
+ 
+It allows swapping policies at compile time. at runtime the choice cannot change without relinking.
+，未选择
+ 
+It encapsulates replacement logic so the BufferManager core avoids policy-specific branches.
+，未选择
+ 
+It enforces a stable interface, enabling A/B evaluation of policies without rewriting BufferManager.
+，未选择
+位置16的问题的结果。
+16
+1 / 1分
+选择题
+Reflecting on the flat-file database's slow tuple lookups, which relational database feature most directly addresses search/retrieval efficiency in practice?
+ 
+Stored procedures that encapsulate common queries to reduce application round-trips.
+，未选择
+ 
+Declarative joins that allow combining rows from multiple tables in a single statement.
+，未选择
+ 
+ACID properties that ensure transactional reliability under concurrency.
+，未选择
+正确答案：
+ 
+Secondary indexing (e.g., B+Trees) leveraged by a cost-based optimizer to choose index scans over full scans.
+位置17的问题的结果。
+17
+0 / 1分
+选择题
+You're considering replacing `seekg()+read()` with a single positional I/O call (e.g., `read_at(offset, buf, len)` / `write_at(...)`) in the storage layer. Focusing on API design, which statement is NOT correct?
+错误答案：
+ 
+Keeping both idioms can fragment usage unless we enforce one style; otherwise you pay both for a larger API and duplicated call paths.
+正确答案：
+Adopting the positional I/O function can significantly help improve performance by avoiding a chain of function calls.
+ 
+Adopting the positional I/O function can significantly help improve performance by avoiding a chain of function calls.
+，未选择
+ 
+Even if the number of functions grows, the semantic surface can shrink because callers no longer manipulate shared stream state; invariants (offset, length) are explicit in each call.
+，未选择
+ 
+Introducing positional I/O often leads to more function variants, increasing the number of API entry points to maintain.
+，未选择
+位置18的问题的结果。
+18
+0 / 1分
+选择题
+In a DBMS buffer manager, `AbstractPolicy` declares `virtual void touch(PageId)` and `virtual PageId evict() = 0;`. Which statement is NOT true?
+ 
+When calling through a `AbstractPolicy*`, `touch()`/`evict()` dispatch at runtime via the vtable.
+，未选择
+错误答案：
+ 
+Because `evict()` is `= 0`, the class is abstract and cannot be instantiated directly.
+正确答案：
+Marking `evict()` as `= 0` enables compile-time binding and eliminates virtual-call overhead.
+ 
+Marking `evict()` as `= 0` enables compile-time binding and eliminates virtual-call overhead.
+，未选择
+ 
+Derived policies (e.g., FIFO/LRU/2Q) must implement `evict()` to be concrete.
+，未选择
+位置19的问题的结果。
+19
+1 / 1分
+选择题
+A slotted page is modified in memory (tuple is deleted), then explicitly written back to disk. Reloading the page from disk shows the deletion.
+ 
+Which statement about persistence and visibility is NOT correct?
+ 
+Writing the page back to disk updates the on-disk state, making future reloads reflect the deletions.
+，未选择
+ 
+Other transactions or processes that read from disk will not see the changes until the write-back occurs.
+，未选择
+正确答案：
+ 
+Every deletion must be immediately forced to disk with an fsync to preserve ACID correctness, even before the transaction commits.
+ 
+In-memory changes become durable only after the page is written back to disk or flushed by the buffer manager.
+，未选择
+位置20的问题的结果。
+20
+0 / 1分
+选择题
+```cpp
+void unfix_page(int frame_id) {
+BufferFrame& frame = buffer_pool[frame_id];
+// global buffer_mutex is dropped here
+if (frame.exclusive) {
+// ... release exclusive lock
+}
+}
+```
+Consider a Buffer Manager where `unfix_page` checks the frame's `exclusive` flag *after* dropping the global buffer pool lock. Which statement regarding why this is dangerous is NOT correct?
+ 
+Another thread could `fix_page` that specific frame and set `exclusive = false` simultaneously.
+，未选择
+ 
+The original thread might attempt to unlock a shared lock using `unlock()` instead of `unlock_shared()`, triggering undefined behavior.
+，未选择
+错误答案：
+ 
+Even if the pin counter hits 0, the frame is vulnerable to eviction, allowing another thread to overwrite its metadata before the original thread finishes its lock release.
+正确答案：
+It immediately triggers a kernel-level thread panic because the OS detects an unprotected concurrent memory read on an unpinned page.
+ 
+It immediately triggers a kernel-level thread panic because the OS detects an unprotected concurrent memory read on an unpinned page.
+，未选择
+位置21的问题的结果。
+21
+1 / 1分
+选择题
+Consider a university database with the following schema:
+ 
+Students(StudentID, Name, Major) : 20,000 students (Primary key: StudentID)
+Enrollments(StudentID, CourseID) : 100,000 rows (~5 courses per student)
+ 
+The database designer considers three possible key designs for Enrollments:
+ 
+1. Design 1: Primary key = StudentID only, no foreign key.
+2. Design 2: Primary key = (StudentID, CourseID), with StudentID referencing Students(StudentID).
+3. Design 3: Primary key = CourseID only, with StudentID as a foreign key.
+ 
+Which of the following statements is correct?
+ 
+With Design 1, all student enrollments can be stored.
+，未选择
+ 
+None of the above designs allow storing all enrollments without conflicts.
+，未选择
+ 
+With Design 3, all student enrollments can be stored.
+，未选择
+正确答案：
+ 
+With Design 2, all student enrollments can be stored.
+位置22的问题的结果。
+22
+0 / 1分
+选择题
+Which statement about mutexes is NOT correct?
+ 
+A mutex ensures fairness across all threads trying to access the resource.
+，未选择
+ 
+RAII wrappers (e.g., std::lock_guard) reduce unlock mistakes on exceptional paths.
+，未选择
+ 
+Misusing mutex scope can create deadlocks or excessive contention.
+，未选择
+错误答案：
+ 
+A mutex provides mutual exclusion for critical sections that touch shared state.
+正确答案：
+A mutex ensures fairness across all threads trying to access the resource.
+位置23的问题的结果。
+23
+1 / 1分
+选择题
+A database workload issues random 4 KB reads.
+ 
+- Hard Disk Drive (HDD) average seek + rotation latency: 8 ms
+- Solid State Disk (SSD) random read latency: 80 µs
+ 
+Assuming a single outstanding I/O, what is the approximate ratio of random read IOPS achievable on the SSD vs the HDD?
+ 
+≈10,000× higher on SSD
+，未选择
+ 
+≈10× higher on SSD
+，未选择
+正确答案：
+ 
+≈100× higher on SSD
+ 
+≈1,000× higher on SSD
+，未选择
+位置24的问题的结果。
+24
+0 / 1分
+选择题
+BufferManager uses a polymorphic policy pointer (e.g., FIFO/LRU/2Q). When can the policy be changed without modifying BufferManager's core logic?
+ 
+Neither at compile time nor at run time.
+，未选择
+ 
+Runtime only only.
+，未选择
+错误答案：
+ 
+Compile time only.
+正确答案：
+Both at compile time and run time.
+ 
+Both at compile time and run time.
+，未选择
+位置25的问题的结果。
+25
+0 / 1分
+选择题
+```cpp
+class StorageManager {
+std::atomic<uint64_t> num_pages;
+// ...
+};
+```
+In the Storage Manager, the `num_pages` variable is declared as an `std::atomic<uint64_t>`. Why is this atomic declaration necessary instead of using a standard non-atomic integer?
+ 
+Because standard `uint64_t` increments are mathematically capped at 4GB on 32-bit compilation targets, whereas `std::atomic` forces 64-bit precision.
+，未选择
+ 
+Because `std::atomic` allows the `BufferManager` to directly manipulate the `StorageManager`'s internal state without invoking friend class privileges.
+，未选择
+错误答案：
+ 
+Because the OS file system driver explicitly requires a thread-safe atomic pointer when mapping virtual pages to physical SSD sectors.
+正确答案：
+Because concurrent threads might execute queries that try to read `num_pages` for bounds checking while another thread extends the file.
+ 
+Because concurrent threads might execute queries that try to read `num_pages` for bounds checking while another thread extends the file.
+，未选择
+位置26的问题的结果。
+26
+1 / 1分
+选择题
+Assume that PAGE_SIZE is referenced in 5 modules: SlottedPage, StorageManager, Buffer Manager, Transaction Manager, and Query Processor. If PAGE_SIZE changes from 4 KB to 8 KB, how many modules must be updated with encapsulation (PAGE_SIZE private to StorageManager) versus without encapsulation (PAGE_SIZE global)?
+ 
+With encapsulation: 0 modules; Without encapsulation: 0 modules (macros auto-update everywhere).
+，未选择
+ 
+With encapsulation: 2 modules; Without encapsulation: only StorageManager must change.
+，未选择
+ 
+With encapsulation: 5 modules; Without encapsulation: the same 5 modules.
+，未选择
+正确答案：
+ 
+With encapsulation: 1 module; Without encapsulation: all 5 modules.
+位置27的问题的结果。
+27
+0 / 1分
+选择题
+```cpp
+int parse_id(const std::string& s) {
+int val = 0;
+std::from_chars(s.data(), s.data() + s.size(), val);
+return val;
+}
+```
+The CSV parser uses `std::from_chars` to parse integer IDs, instead of standard C++ functions like `std::stoi`. Which statement about this choice is NOT correct?
+ 
+std::stoi safely rejects trailing characters (like parsing "100abc") by throwing a std::invalid_argument exception, making it safer for strict CSV parsing.
+，未选择
+ 
+std::from_chars returns a result structure containing a pointer to the first unparsed character.
+，未选择
+错误答案：
+ 
+Using std::from_chars allows the parser to strictly verify that no extraneous alphabetic characters exist after the number, preventing subtle data corruption issues during bulk database imports.
+正确答案：
+std::stoi safely rejects trailing characters (like parsing "100abc") by throwing a std::invalid_argument exception, making it safer for strict CSV parsing.
+ 
+std::from_chars does not throw exceptions or allocate memory, making it a high-performance alternative.
+，未选择
+位置28的问题的结果。
+28
+0 / 1分
+选择题
+Some DBMSs store free-space metadata in dedicated pages (e.g., Free Space Map in Postgres). Which statement about this design is NOT correct?
+ 
+Dedicated free-space metadata pages help reduce fragmentation of pages and the need for page compaction.
+，未选择
+ 
+Dedicated metadata pages can become hot spots under heavy insert load if not cached or partitioned properly.
+，未选择
+ 
+Centralizing free-space metadata avoids scanning every data page, speeding up insertion path selection.
+，未选择
+错误答案：
+ 
+Removing metadata from data pages slightly increases tuple density, but may require extra I/O to consult free space during inserts.
+正确答案：
+Dedicated free-space metadata pages help reduce fragmentation of pages and the need for page compaction.
+位置29的问题的结果。
+29
+1 / 1分
+选择题
+Two transactions concurrently update and read the same row without proper isolation. What can happen?
+ 
+Atomicity of each transaction is violated, leaving partial effects visible after abort.
+，未选择
+ 
+Writes may become non-durable, risking data loss after commit.
+，未选择
+正确答案：
+ 
+Phenomena such as dirty reads, non-repeatable reads, lost updates, or phantom reads can occur.
+ 
+Deadlocks become impossible because locks are not held.
+，未选择
+位置30的问题的结果。
+30
+0 / 1分
+选择题
+A DBMS page stores 64 tuples on average.
+Design 1: No-slots — tuples stored contiguously, lookup requires scanning i tuples.
+Design 2: With-slots — slot directory gives constant-time lookup.
+ 
+Average scan cost = 0.05 μs/tuple; slot lookup cost = 0.20 μs.
+Which design has lower average lookup latency per tuple?
+ 
+Both designs have roughly similar lookup latency.
+，未选择
+ 
+Design 2 (With slots).
+，未选择
+错误答案：
+ 
+Designs cannot be compared without knowing tuple size.
+正确答案：
+Design 2 (With slots).
+ 
+Design 1 (No slots).
+，未选择
+位置31的问题的结果。
+31
+1 / 1分
+选择题
+Consider a transaction that transfers funds between two accounts.
+ 
+Which of the following best describes the durability property of this transaction?
+ 
+The transaction must execute in isolation from other concurrent transactions.
+，未选择
+ 
+The balances must be updated instantly to always reflect the true state of the system.
+，未选择
+ 
+Both account updates must succeed together, or neither should affect the database.
+，未选择
+正确答案：
+ 
+Once the transaction commits, its effects must persist even after a crash or power failure.
+位置32的问题的结果。
+32
+0 / 1分
+选择题
+Two storage hierarchies are compared:
+ 
+Hierarchy A: Latency ≈ 100 ns, Cost ≈ $1,000/month
+Hierarchy B: Latency ≈ 400 ns, Cost ≈ $300/month
+ 
+Assume throughput ∝ 1/latency and define price/performance as $/Mops (dollars per million operations per second; lower is better).
+Which option has the better price/performance, and what is its approximate value?
+ 
+Hierarchy B; about $30/Mops
+，未选择
+ 
+Hierarchy A; about $400/Mops
+，未选择
+ 
+Hierarchy A; about $100/Mops
+，未选择
+错误答案：
+ 
+Hierarchy B; about $120/Mops
+正确答案：
+Hierarchy A; about $100/Mops
+位置33的问题的结果。
+33
+1 / 1分
+选择题
+Why are ACID properties crucial in a multi-user DBMS?
+ 
+They limit concurrency to prevent overload, ensuring stable throughput.
+，未选择
+ 
+They keep the system lightweight and guarantee faster reads/writes than file systems.
+，未选择
+ 
+They force the optimizer to choose the optimal query plan for each workload.
+，未选择
+正确答案：
+ 
+They ensure predictable behavior under concurrency and failures, preserving correctness and data integrity.
+位置34的问题的结果。
+34
+1 / 1分
+选择题
+Consider the behavior of variables in statically typed languages (e.g., C++) versus dynamically typed languages (e.g., Python). Which statement captures a fundamental difference most relevant to DB engine implementations?
+ 
+In statically typed languages, a variable's type can be changed at runtime if the optimizer determines it is profitable.
+，未选择
+ 
+Dynamic typing prevents runtime type errors by deferring checks to execution time, which improves safety compared to static typing.
+，未选择
+ 
+Static typing cannot support parametric polymorphism (e.g., templates/generics), limiting reuse in systems code.
+，未选择
+正确答案：
+ 
+Static typing associates types with variables/expressions known at compile time, enabling code specialization (e.g., fixed-width tuple layouts).
+位置35的问题的结果。
+35
+1 / 1分
+选择题
+Designing a university DB: Students(StudentID PK), Courses(CourseID PK), Enrollments(StudentID, CourseID). Which implementation correctly uses keys to maintain integrity, and why?
+ 
+Set CourseID as the primary key of Enrollments and StudentID as a foreign key referencing Students(StudentID).
+，未选择
+正确答案：
+ 
+Set a primary key (StudentID, CourseID) on Enrollments; StudentID and CourseID are foreign keys referencing Students(StudentID) and Courses(CourseID) respectively.
+ 
+Set StudentID as the sole primary key of Enrollments with no foreign keys to avoid join overhead.
+，未选择
+ 
+Use EnrollmentID as surrogate primary key to maximize flexibility.

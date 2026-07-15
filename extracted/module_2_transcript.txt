@@ -1,0 +1,389 @@
+In this module, we will introduce the idea
+of slotted pages. We will first present the
+limitations of the page class, such as supporting
+variable length tuples. We will then introduce
+the idea of slot pages and how it addresses these
+limitations of the page class. We will go over building an index from an on
+disk database file. We will then present
+a brief overview of casting operators and
+streams in SplS plus. We will also introduce a new storage manager class to take over the storage management
+responsibilities from the main Bus DB class.
+ 
+ 
+In this lesson, we will discuss about the limitations
+of the page class, such as supporting
+variable length tuples. We will then introduce
+the idea of slurred pages and how it addresses these
+limitations of the page class. In the page class, finding
+space for a new tuple requires a linear scan through the entire page to identify
+a suitable empty slot. Imagine a scenario where a page is nearly full containing
+hundreds of tuples. Inserting a new tuple in
+this scenario is similar to searching for a vacant parking
+spot in a nearly full lot, as the system scans from the start to find an
+appropriate empty slot. If we were to support
+variable length tuples, that further complicates
+this problem. For instance, storing
+text strings of varying lengths in a fixed sized slot model
+results in wasted space. Short strings like high waste
+almost the entire slot, while longer strings like hello world might
+not fit at all. After numerous insertions
+and deletions, a page can become
+highly fragmented, similar to a Swiss
+cheese full of holes. To maintain efficiency, the database system must
+periodically compact this page, and that involves moving tupples around the page to consolidate
+free space, as shown here. This compaction process adds significant overhead to
+the database system. In the next version of Bz DV, the slotted page
+class introduces a flexible structure
+for managing tuples. Slots or metadata entries in a page header section
+that keep track of where the tuples are
+stored within the page. Each slot contains the offset, which is the starting
+point of the tuple within the page and the length of
+the tuple that it stores. There is a free
+space offset field in the page header that indicates the starting point of the available free
+space within the page. This offset is dynamically updated as tuples are
+inserted or deleted. It is followed by
+the slot array with all the metadata about the location of the
+tuples within the page. The slots follow immediately
+after the page header. And they contain the actual
+tuples stored in the page. Unlike the page class, slots allow tuples to be
+placed anywhere in the page, so it is easy to store variable length
+records depending on the first lot
+with enough space. Slots also enable direct
+access to any tuple by index, thereby facilitating
+efficient reads, updates, and deletes without requiring linear scanning or reorganization
+of the entire page. A header at the top of
+each page tracks metadata, including the number of slots
+and the free space offset. Each slot points to the start of that tuples
+data within the page. This design naturally supports
+variable length tuples. When adding a tuple, the system checks for
+available space and identifies the correct slot for the tuple for efficient
+space utilization. This code itertes over the slot array to find an empty slot with
+sufficient space. The delete method
+marks a tuple as deleted within the slot page
+by updating the slot array, thereby freeing up space
+for future insertions. This approach allows for
+efficient space reclamation. For updates that
+change the tuple size, the system can either update the tuple in place
+if space permits, or it can move the tuple within the page and update the slot with a new
+offset and length. This flexibility allows
+the database system to handle dynamic data
+sizes efficiently. The slotted page
+addresses the problem of linear scan for empty
+space by checking the page header for a slot with enough contiguous
+free space and then directly asking that
+slot for tuple addition. It also solves the
+problem of supporting variable length
+records by allowing each slot to point to
+a tuple of any length, thereby minimizing
+internal fragmentation. Additionally, compaction is
+simplified because tuples can be easily moved around to other slots to compact the page, and only the slot offsets
+need to be updated. This approach minimizes
+the compaction overhead. To wrap up, in this lesson, we first discussed
+the limitations of the page class such as
+complicated compaction. We then introduced the
+slotted page class, highlighting its
+flexible structure that simplifies compaction. The slotted page design
+significantly enhances the performance and scalability
+of the database system.
+ 
+In this lesson, we will explore database file management
+within BS DB. We will also discuss about
+how to manage multiple pages, expand the database
+dynamically and ensure data persistence by
+flushing the database file. Currently, Bus DB manages a
+single slot at page instance, limiting the database to
+operate with a single page. This design restricts
+the amount of data that the
+database can handle. To accommodate more data, we need to support
+database expansion by dynamically adding more
+pages to the database file. In the next version of BSDB, we use a database file
+with multiple pages. In the busdB constructor, we first check if the database file exists
+using SDD IfStream. If the file does not exist, it creates a new file by simply opening an OF stream
+with the same file name. This ensures that the
+file exists before we try to open it for reading
+and writing with Fstream. The database file
+is then opened with read and write permissions
+using SDD fstream. The IOS in flag is used to indicate that the
+file is open for reading. The IOS out flag is used to indicate that the file
+is open for writing. We combine these two flags
+using the bitwise or operator to open the file in both reading
+and writing modes. This means that we can both read from and write to the file. The constructor also calculates the number of pages
+in the database file by seeking to the
+end of the file and dividing the file
+size by page size, telling us how many pages
+of data currently exist. If no pages are
+found in the file, the constructor calls
+Extend database file to add an initial empty page, ensuring that the database is
+ready for inserting tuples. The extend database file
+encapsulates the logic for dynamically expanding the
+database files capacity. It handles the low
+level file operations required to upend a new page to the database file and then updates the
+number of pages. Let's look at an illustrative database file with four pages. The offset of the
+first page is zero. The offset of the second
+page is 4,096 bytes. Here, we are assuming that
+the page size is 4 kilobytes. The offset of the third page
+is 8,192 bytes and so on. We extend the file by appending
+page five to the file, and the total database file
+size is now 20 kilobytes. When attempting to insert
+new data into the database, BSDB checks whether
+there is enough space in the existing pages of the file to accommodate
+the new tuple. If all the pages are full and
+cannot hold the new tuple, then extend database
+file is invoked to add a new empty page
+to the database file. This ensures that there is
+always room for new data, thus supporting
+database scalability. To initially load the database, we iterate through
+the existing pages, desalizing each one into a slotted page object and storing these in
+the pages vector. This step loads the database's
+current state into memory. After a page is
+updated in memory, Bz DB must ensure that changes are saved to
+disk immediately. This is where the flush
+method plays a crucial role. The SKP function sets the
+position within the file. Here, we seek to the page
+offset associated with the given page ID by multiplying
+page ID with page size. The right function sends the page data to a
+buffer at that offset. Flush function empties
+a buffer so that it is written to disk and
+the data is durable. BSDB tries to insert a new tuple into the
+current Slored page. If the tuple is
+successfully added, it proceeds to immediately
+flush the changes by calling the flush method on the sled page that
+received the new tapo. This ensures that the
+updated page state is writtn to the
+database file on disk. C plus plus employs buffered IO to enhance the efficiency
+of file operations. Writing to a file via SDD OF
+stream temporarily places data into an in memory output buffer to optimize
+disk IO operations. While buffering
+optimizes performance by reducing disc IVO operations, it also introduces
+a delay between a program's write request and the actual data
+persistence on disk. Explicitly calling flush
+immediately writes all the buffered output data to the file to prevent data loss. This is particularly crucial when the database program might unexpectedly terminate
+and data durability on disk is important. In this lesson, we discussed
+about the management of database files in BSDBFocusing on how to handle multiple pages, grow the database file
+dynamically and ensuring data persistence by
+flushing the database file.
+ 
+ 
+In this lesson, we will
+dive into the specifics of building an index from an on disk database
+file. What is an index? An index helps answer queries directly without needing
+a full table scan. In this picture
+on the left side, there is an
+unorganized bookshelf that mixes books from Orwell, Austin, and Hobbs randomly. To count how many books were
+written by each author, we must scan the entire table. On the right side, we have an index data structure that groups the books
+based on the author. The index is actually a different data structure
+compared to the table. For instance, it could be a
+tree like data structure. The index actually allows
+us to quickly count how many books are
+available from each author without
+scanning the entire table. For example, Austin has three books and Orwell
+has three books, and Thomas Hobbes has two books. Clearly seed into these
+different sections. This illustration
+shows the advantage of organizing data using an index to avoid the need for scanning the entire table
+for answering a query. To construct an index directly from the on
+disk database file, we need to iterate over
+all the pages in the file. In each page, we access the slottery and itrate over
+all the slots in that page. For each page, we first acquire the pointer
+to the page data. Once we have access
+to the page data, we proceed to cast the
+page buffer to a Slottery. This allows us to interact
+with the slot metadata, allowing us to identify non empty slots which
+contain doubles. In this code, we are
+using reinterpreted cast. Rinterpret cast is a casting
+operator in C plus plus that allows for conversion of one pointer type to
+another pointed type. Rinterpreted cast
+does not change the binary value of the pointer but changes how the
+pointer is interpreted. This casting operation
+allows us to treat the sequence
+of bytes pointed to by character
+pointer page buffer as slot pointer or
+an array of slots. The conversion allows us to access the slot
+array directly from a raw page buffer to
+analyze the slot metadata. After identifying
+a non empty slot, we extract the tuple data in that slot using the offset
+specified in the slot. This data is then
+deserialized to retrieve key value pairs which are subsequently added to
+our in memory index. The index allows us to accelerate
+the aggregate query by keeping track of all the values
+associated with each key. Use I string stream for
+maniplating the tuple string. This diagram illustrates how a serialized string
+of data stored in an I string stream object can be deserialized into a
+structured tuple. We initialize the I
+string stream object with the tuple data as a string. We then use the static
+deserialized method in tuple class to convert the string stream
+to a tuple object. Lastly, we extract the
+key and value fields from the tuple and add them
+to our in memory index. To recap, we
+explored the process of building an index from
+an on disk database file, focusing on the
+steps involved from data extraction using string
+stream to topple indexing.
+ 
+ 
+In this lesson, we will present a brief overview of different casting
+operators in CPS plus. Casting in CPS plus is a way to convert one data
+type into another. For example, if you
+have a number stored as an integer and you need
+to treat it as a decimal, you can cast it to a float. CplusPlus provides four main casting operators
+for data conversions. They are static cast, reinterpret cast, dynamic
+cast, and const cast. Each casting operator
+serves a unique purpose. In this lesson, we will focus only on static and
+reinterpretcast. Static cast is used
+for conversions between types that are
+naturally compatible, such as integers and floats. This is the safest cast to use when you know that there is a valid conversion
+between the types. For example, here, a float variable float
+key with a value of 123.45 is converted to an
+integer using static cast. This is useful when
+you need to store a floating point number as
+an integer key in bus DB. Let's next look at
+reinterpretcast. Rinterpretcast allows
+for the conversion of any pointer type to any other pointed
+type regardless of whether the
+types are related. It is akin to reinterpreting the raw binary data of
+one type as another, which is particularly useful in low level operations like
+handling raw data from a file. In this snippet, reinterpret
+cast is used to treat the raw Byte array pointed to by page data as an array
+of slot structures. Rinterpretcast is
+powerful and must be used carefully to avoid
+corrupting data integrity. In this lesson, we covered the key aspects of
+casting in CiplusPlus. We learned about
+converting data types with static cast and
+reinterpretcast.
+ 
+ 
+In this lesson, we will briefly discuss about streams
+in C plus plus. Stream is a conceptual model for handling IVO operations
+in a generalized manner. This abstraction allows
+developers to interact with any data source or destination through a
+consistent set of operations. It enables applications to read from or write to files, memory, the console, and
+over the network without needing to manage
+distinct APIs for each. File IO involves reading from
+and writing to disk files. This is essential for
+applications that need persistent storage like
+databases or text ediors. Memory buffers deal
+with data stored in the application's memory like
+an in memory string buffer. It is typically used for temporary data manipulation
+during computation. Console IO manages input from the command line and output
+back to the user's Console. It is crucial for a
+command line terminal. Lastly, Network IO handles sending and receiving data
+over network connections. This is critical for
+web based applications and services that communicate
+over the Internet. Streams abstracts the
+specifics of what the data source
+or destination is focusing instead on
+the flow of data. In CPS plus, the
+two primary types of streams that we will focus on are Fstream for
+file handling and stringstream for in memory
+string manipulation. Fstream stands for Flestream providing capabilities to
+read from and write to files. In this example, we open a file named data dot text for
+both reading and writing. We read lines from the file and output them back
+to the console, and lastly, we write a new
+line back to the file. Fstream is used for storing and retrieving data
+in files on disk. Stream is a part of the Stream library that allows for treating
+strings as streams. This is particularly useful for converting data to
+and from strings. In this code snippet, integers are inserted into a string stream and then extracted back into
+integer variables. This snippet demonstrates how string stream can be used for
+flexible data conversions. In this lesson, we
+briefly covered the essential aspects of
+streams in C plus plus. We discussed about
+the importance of FStream and string
+stream libraries for data management. No
+ 
+ 
+ 
+In this lesson, we will focus on introducing a new storage
+manager class into BS DB. Our goal is to enhance the modularity of
+our database system by abstracting storage
+management operations away from the main
+bus DB function. We will also learn about the
+RAII principle in Cypspls. In the next version of Bz DB, we introduce a new
+storage manager class. The purpose of this
+class is to take over the storage management
+responsibilities from the main Bz DB class. By centralizing file
+system interactions within the storage manager, BSDB can focus on other functionalities
+like query processing. This separation of concerns
+enhances code modularity. The storage manager is responsible for these
+fundamental operations. The load page function handles
+reading a page from disk. The flush page
+function takes care of writing a modified
+page back to disk. The extent file function
+enables the database to grow dynamically by adding new
+pages to the file as needed. The constructor and
+destructor class functions manage the initialization and cleanup of the storage manager, ensuring that resources are properly acquired and released. The storage manager centralizes all operations related
+to file handling, including page reading, writing, and database file extension. The constructor of the storage
+manager is shown here. It initializes the filestream required for read and
+write operations. We attempt to open
+the database file. If this fails indicating
+that the file doesn't exist, then we reset the
+Flestream state, create the file, and then
+open it for IO operations. We also calculate the total
+number of pages in database by moving to the end of the file stream using
+the TLG method. Bus DV supports dynamic
+addition of pages on demand. The function shown here extends
+the database by writing a new empty page at the end
+of the file and then flushing the file stream to ensure that all the in memory
+changes reach disk. Data persistence is ensured
+through the flush function, which writes a modified in memory page identified by
+the page ID back to disk. Here, the flush
+function calculates the offset of the
+page to be flushed, seeks to that position, and writes the page
+data followed by a flush to push the
+changes to disk. The storage manager
+class supports reading pages from the database file
+using the load method. The load function takes a
+page ID as its parameter. The page ID is used to read a specific page within
+the database file. In the load function, we seek to the appropriate position in
+the file using the page ID, create a new slotted page, and attempt to read
+the page from disk. If successful, we
+return the page. Otherwise, we log an error
+and exit the application. The destructor of
+the storage manager ensures that resources
+are freed appropriately. This function checks if the file stream is open
+and if so closes it. In CpsPlus, the destructor of Fstream automatically
+closes the file, so the purpose of this
+explicit close call is only for communicating our intent
+to other BSDB developers. The destructor of the
+storage manager class illustrates the RAI principle. RAII or resource acquisition is initialization stands
+for the fact that resources such as file
+handles are managed in a way that ties their life cycle to the
+lifespan of objects. An object is created, it acquires the resource, and when the object
+is destroyed, it releases the resource. The RI principle helps
+prevent resource leaks. Smart pointers illustrate
+the RAI principle. The lifetime of the
+resource, in this case, memory allocated on the heap is tied to the scope of the
+smart pointer object, ensuring automatic
+resource cleanup to prevent memory leaks. The constructor
+and destructor of the storage manager also
+illustrate the RAII principle. The lifetime of the
+resource, in this case, a file handle is tied to the scope of the
+storage manager, ensuring automatic
+resource cleanup to prevent file handle leaks. Why is this important? File handles are also
+limited system resources. An operating system only allows a certain number of file handles to be opened simultaneously. Not properly managing
+file handles can lead to resource
+exhaustion where no new files can be opened until existing ones are closed by any other program running
+on the operating system. By using RII, the Flestreams life cycle
+is managed automatically, and the file handle is released when the Flestream is destroyed. Lastly, we integrate
+the storage manager into the bus DV class. This function attempts to insert a tuple
+into the database, leveraging the
+storage manager to access pages and ensure data persistence through
+the flush method. This design separates concerns between tuple management and low level storage operations, thereby enhancing
+code modularity. In this lesson, we explored how the storage manager
+improves modularity. We covered the
+implementation details of the storage
+manager and discussed about how it manages resources
+using the RAII principle.
+ 
+ 
+ 
+In this module, we
+presented slot pages and how they address the limitations
+of the basic page class. We went over how slotted pages support variable length couples and faster page compaction. We explored the
+process of building an index from an on
+disk database file, focusing on data extraction from the pages to couple indexing
+using string streams. We then learned about
+safely converting data types using static
+cast and reinterpret cast. We also discussed about
+the importance of F stream and string
+stream in data handling. We then discussed about how the storage manager class
+improves modularity in Bus DB and how it manages resources using the RAI
+principle in C plus plus.

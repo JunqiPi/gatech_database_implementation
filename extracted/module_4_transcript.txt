@@ -1,0 +1,584 @@
+>> In this module, we will
+learn about the importance of multi-threading and
+debugging in database systems. We will discuss
+about the evolution of multi-core CPUs and how they have shifted software design towards
+multi-threaded programming. We will then explore how to synchronize threads to protect data integrity in a
+multi-threaded environment. We will also introduce the
+idea of fine-grained locking, specifically focusing
+on improving concurrency in a multi-threaded
+database system. We will then go
+over techniques for identifying and fixing software bugs within
+database systems.
+ 
+ 
+>> In this lesson, we
+will discuss about the evolution of multicore CPUs. We will then learn about how
+these multicore CPUs have necessitated a shift towards multi threaded
+programming in C++. Let's go over a brief
+history of CPUs. From the 1970s to the 1980s, the first CPUs ran
+at a few megahertz, around 100 million assembly
+instructions per second. During the 1990s, the clock speed progressed
+to hundreds of megahertz, and by the end of the decade, breached the one gigahertz mark. The early 2000 saw frequencies soaring
+past three gigahertz. However, increasing
+clock speeds led to excessive heat generation
+and power consumption hitting a thermal wall. For instance, in 2004, the Pentium 4 processor
+ran at 3.8 gigahertz. To circumvent this problem, dual core CPUs were
+introduced in 2005, such as Intel's Pentium D
+and AMD's Athlon 64 X2. Here, a core in a CPU can be thought of as a
+separate processor. This began the shift towards
+parallel processing. This trend has
+accelerated rapidly with the advent of quad
+core CPU and beyond, evolving to today's
+standards where mainstream consumer
+CPUs feature 6-8 cores, and high end servers
+offer up to 64 cores. Clock speed in a CPU
+is like the rhythm of a drum beat and dictates how many instructions
+the CPU runs per second. You can think of each drum beat as the execution of
+one instruction. Originally, CPUs
+had a single core that processed one
+instruction per beat. To improve performance,
+we need to speed up the drum beats or
+increase the clock speed. However, increasing
+the clock speed led to issues like overheating, limiting further
+speed increases. To overcome this problem, multicore CPUs were introduced. This is similar to adding more drummers so
+that we can have more beats at the same time or run multiple instructions
+at the same time. A code is essentially an
+independent processor itself. Multicore CPUs can process multiple instructions
+at the same time, hence the phrase
+parallel processing. A thread is a series of instructions listed
+for excursion. For leveraging multicore CPUs, the database system must execute multiple
+threads in parallel. For example, it can run
+two transactions from two different users using two
+threads at the same time. Let's look at an example
+for multi threading in C++. Consider a simple bank
+application where the bank balance is adjusted concurrently
+by several threads. In this C++ code, multiple threads perform
+a $10 deposit and a $10 withdrawal on the
+shared bank balance variable. Multiple threads are launched to perform the bank
+transactions concurrently. The threads are managed
+using a vector. Each thread runs the performed
+transaction function, and we launch eight
+threads and wait for the threads to finish
+running the function. After all the threads have
+completed their task, the final bank
+balance is displayed. What would be the
+expected balance? If the initial
+balance was $1,000, then all the deposits and withdrawals should have
+canceled each other out. So the expected final
+balance is also $1,000. However, this is often not the case because we don't
+really synchronize the threads. There is a raise condition
+where the value of the bank balance depends on the sequence of
+thread execution. Synchronization is crucial for writing robust multi
+thread applications. Here is an example to understand the importance
+of synchronization. Imagine the threads
+as a bunch of kids in line to play on a slide
+at the playground. Only one kid can go down
+the slide at a time. To make sure everyone gets their turn and nobody
+crashes into each other, all the kids must
+agree to take turns. That is synchronization. The different threads must agree to take turns and wait for each other so they don't crash into each other when trying to
+do something together. Let's look at the code
+at assembly level. When a thread performs an operation like bank
+balance plus equal to 10, this is not a single
+assembly instruction, but rather a sequence of
+three assembly instructions. We first load the value of bank balance from the
+memory to register. We then add 10 to the bank
+balance value in the register. Lastly, we store the new value in the register back to memory. This picture illustrates the race condition
+when two threads access and modify the same
+shared back balance variable. First, Thread 1 loads the initial bank balance of
+$1,000 into its register. Then Thread 2 loads the same bank balance value
+of $1,000 into its register. Thread 1 then adds
+$10 to its register, updating the balance
+to $1,010 and stores this updated value
+back into bank balance. Concurrently, Thread 2, unaware that Thread 1 has already modified
+the bank balance, also adds $10 to its register, which still holds the
+old value of $1,000. As a result, Thread
+2 also ends up storing $1,010 back
+to the bank balance. So the final bank
+balance is wrong, $1,010 instead of $1,020. This is why we need
+to synchronize the two threads to
+prevent such errors. The race condition
+occurs because these three instructions
+are not atomic. Atomic here means indivisible. In other words, no
+other thread can see the intermediate states during the exclusion of the sequence. However, in the absence
+of synchronization, thread two can indeed
+interfere with thread one while it is running
+these three instructions. In the next lesson, we will learn about how
+to solve this problem. In this lesson, we
+covered the evolution of CPUs from single core CPUs
+to modern multicore CPUs. We saw how this
+development necessitated a shift in software design towards multi thread processing. We also looked at how
+multi threading without synchronization leads
+to incorrect results.
+ 
+ 
+ 
+>> In this lesson, we will explore how to synchronize
+threads to ensure mutual exclusion
+and thereby protect data integrity in a
+multi-threaded environment. We will then learn
+about using a mutex in C++ as a practical way to
+ensure mutual exclusion. You can think of
+a mutex as a door lock to a room with
+a shared variable. The room can only be entered
+if the door is not locked. When a thread wants to
+perform operations on the shared variable like
+updating the bank balance, it must first wait for
+the room to be unlocked. If the mutex is already locked
+or the room is occupied, then the thread must wait
+until the room is vacated. Once inside the room, the thread can perform its
+operations with the assurance that no other thread can enter the room and
+disrupt its process, similar to having exclusive
+access to the room. After completing its work, the thread unlocks
+the mutex again, making it available for the next thread
+that needs access. In this way, the
+mutex ensures that the threads are mutually
+excluded from each other, hence the term mutual
+exclusion or mutex. Consider this C++ snippet, where std mutex is used to synchronize access to the
+shared bank balance variable. Here, bankMutex.lock and bankMutex.unlock are used
+to control the mutex. Within the locked region, the bank balance is incremented
+and then decremented, ensuring that the
+operations are atomic, meaning they appear as a single operation without interruption from other threats. This prevents any form
+of data corruption that could arise from
+concurrent modifications. When a thread modifies
+bank balance, it first locks bank mutex. If bank mutex is already locked, the thread waits until the
+mutex becomes available. The operations
+between the lock and unlock calls form a
+critical section. Only one thread can enter
+this section at a time, ensuring that the read
+modify write operations on bank balance are performed without interference
+from other threads. Once the operations
+are complete, bank mutex is unlocked, allowing other waiting
+threads to proceed. This assembly code
+snippet implements a mutex using the compare and exchange
+atomic instruction. The compare and
+exchange instruction automatically compares
+and exchanges values to ensure safe
+multi-threaded axis. The first move instruction initializes EAX
+register to zero, setting up the expected
+unlock state for the mutex. The second move instruction
+initializes EBX to one representing the
+lock state of the mutex. The third lock compared
+exchange instruction automatically checks if
+mutex is zero and if true, sets it to one, transferring the old value of mutex into EBX. The test instruction checks if the mutex state was already locked indicated by EBX
+containing a non-zero value. If EBX is not zero, indicating the mutex
+was previously locked, the jump non-zero retry
+instruction loops back to the retry label and tries to lock
+the mutex again. Overall, this spin loop continues until the
+mutex is locked. Once the mutex is locked, the thread enters
+the critical section where it can safely
+update the bank balance. This critical section needs
+to be protected to ensure that no two threads can
+execute simultaneously. Unlocking a mutex is
+straightforward and can be done by simply setting
+the mutex value to zero, which represents
+the unlocked state. Let's next look at how the mutex prevents data
+raises at a higher level. Each thread starts its
+operation sequence by attempting to lock the mutex. Once the mutex is locked
+from time steps 2 through 4, the thread proceeds to load the current value
+of bank balance, modify it, and store
+the new value back. All these operations are
+protected by the mutex, preventing any other thread from entering its
+critical section. After completing its operations, the thread releases the mutex, allowing the next waiting
+thread to acquire the mutex and perform its operations
+from time step 6. In this way, the mutex forces
+the threads to execute their critical
+sections sequentially and prevents a database. Let's next consider
+another scenario with five bank accounts. Here, each transaction happens on one of the five accounts. In this example as well, we could use a single bank
+mutex to control access to transactions across all
+the five bank accounts. While this approach
+prevents data erases, it also severely
+limits concurrency. Even when two threads operate on two different bank accounts like account 1 and account 5, they must still fight
+for the same mutex. This increases wait
+times unnecessarily and reduces the system's
+overall operational throughput, particularly as the number of threats and the number
+of bank accounts grows. To recap, in this lesson, we explore how synchronization
+mechanisms like mutex are useful in
+multi-thread environments. We discussed about how mutex
+help prevent data erases by ensuring that
+critical sections of code are accessed
+sequentially by threads. We also discussed about how
+the limitations of using a single mutex for multiple bank accounts can significantly
+reduce concurrency.
+ 
+ 
+>> In this lesson, we will introduce the idea of
+fine-grained locking, specifically focusing
+on improving concurrency in the
+banking application. We will learn about
+the common pitfalls of locking like threat
+starvation and how std::lock_guard in C++ can help minimize the
+risk of starvation. With the multiple bank
+accounts example, using a single mutex
+significantly lowers concurrency. To solve this problem, we can allocate a separate
+mutex for each bank account. This is known as fine-grained
+locking as each thread only locks the mutex for the specific account
+it is working on. In contrast, the prior
+approach of using a single mutex for all the accounts is known
+as coarse-grained locking. Separate mutass for each
+account allows multiple threads to simultaneously
+perform transactions on different accounts
+that do not conflict. This approach reduces
+the wait times for threads that interact with
+different bank accounts, enhancing concurrency, and speeding up overall
+transactional throughput. In this C++ snippet, we look at the
+implementation details of fine grain locking. Each mutex in the bank
+account mutass array corresponds to one bank account. During transaction processing,
+the respective mutex for account is locked
+and unlocked around the operations of
+depositing and withdrawing. This approach enhances overall
+concurrency by allowing non-conflicting
+transactions to proceed in parallel across
+different bank accounts. It also ensures that the
+operations by a thread on a bank account are still atomic and isolated
+from other threats. In the performed
+transaction function, manual locking and unlocking of the mutexes is
+straightforward, but it comes with a risk, particularly the danger of forgetting to unlock
+a mutex after use in more complex functions
+with lots of if and else conditions and
+multiple exit paths. This code snippet
+demonstrates a scenario where the developer might forget
+to unlock the mutex. This leads to the thread holding on to the
+lock indefinitely, preventing other threads
+from proceeding. This is known as
+thread starvation. Thread starvation
+occurs when a thread holds a lock that
+other threads need, and those threads end up
+waiting indefinitely. In the context of our
+banking application, if Thread 1 locks the
+Account 3 using the mutex, and does not release it, any other thread like
+Thread 4 that needs to access Account 3 will
+be blocked forever, waiting for a mutex
+that is never unlocked. This starvation can grind
+our application to a halt. This is why careful lock
+management is super important. To mitigate the risk associated with manual
+lock management, C++ offers std::lock_guard that automatically manages
+locking and unlocking. By using lock_guard, developers can ensure that mutexes are always
+properly released, even if an exception occurs. This slide shows how
+wrapping the mutex with std::lock_guard
+in a scope ensures that the mutex is
+automatically unlocked when the lock_guard object is destroyed when it
+goes out of scope. Lock_guard also exemplifies
+the RAII principle in C++. By acquiring a lock upon construction and releasing
+it upon destruction, we tie the mutexes lock state to the scope of an
+std::lock_guard object. This principle means that
+the resource should be properly released when the
+owning object is destroyed. This practice provides
+a clean and safe way to handle locks in C++, minimizing the risk of thread
+starvation and deadlocks. The RAII principle simplifies
+resource management in C++ by tying resource
+allocation to object lifespan. This table outlines three RAII
+objects, std::lock_guard, std::unique_pointer,
+and std::fstream, each designed to manage a
+specific type of resource. Lock_guard is used
+for mutex management, automatically
+locking a mutex upon object creation and ensuring its release upon the
+object's destruction. Unique_pointer is used for
+dynamic memory management. It ensures that the memory is freed when no longer
+needed by the owner. Fstream manages file handles, opening a file on creation and closing
+it upon destruction. Together, these examples
+demonstrate the effectiveness of the RAII principle in automating resource management in
+complex C++ applications. To recap, we learned about
+fine-grain locking and the importance of lock_guard in multi threaded programming. These techniques help
+improve the performance and robustness of a
+multi-threaded database system.
+ 
+ 
+>> In this lesson, we will briefly learn about
+database configuration, a critical component of the database system that determines its
+performance and cost. We will also discuss
+about how to tune the configuration
+parameters to tailor the database system to meet the specific needs of the application running
+on the database system. Database configuration
+is a collection of tunable parameters that govern the overall behavior of
+the database system. Database administrators
+or DBAs often carefully tune these configuration
+parameters to optimize for
+performance or cost. We will next discuss a few
+key parameters in BSTB. First, let's look at the
+page_size parameter. The page_size parameter in the database configuration sets the size of each database page. For example, if we have an eight kilobyte buffer pool and the page_size
+is one kilobyte, then we can fit eight
+pages in the buffer pool. Increasing the
+page_size from say, one kilobyte to four kilobyte allows more data to be
+stored on each page. For example, here we can fit two four kilobyte pages
+in the buffer pool. This means that when a
+query is scanning a table, fewer pages need to be read
+potentially speeding up query response time by
+reducing disk IO operations. However, the trade off is that larger page_sizes
+consume more memory per page in the buffer pool. With the same amount
+of available memory, the buffer pool can only
+accommodate fewer such pages, which can also limit the
+performance benefits. Let's next look at the
+max_slots parameter. The max_slots
+parameter specifies the maximum number of slots in a start page where each slot represents the
+space for storing a tuple. If we increase the
+max_slots parameter from 128 slots to 256 lots per page, we can store more
+tuples on each page. This allows more tuples to be accessed in a single
+IO operations. However, increasing this
+parameter also has a limitation. In the slot page, as each
+page has a fixed size, the more slots you allocate, the less space each slot
+can effectively hold. This constraint means that for pages with a very
+high number of slots, each tuple must be
+relatively small. Therefore, there's
+a balance to be struck between the
+number of slots per page and the expected size
+of the tuples to ensure efficient use of space without compromising the ability
+to store large tuples. Let's next look at the
+max_pages_in_memory parameter. This parameter determines the maximum number of pages that the database buffer pool
+can hold at any given time. If we change the setting from
+four pages to eight pages, it effectively
+doubles the amount of data that can be
+buffered in memory. The advantage is faster queries due to reduced disk
+IO operations. However, it also means
+that we need more DRM, which is limited on
+any given machine. Most parameters like page_size, have an optimal value, often referred to as a sweet spot for
+maximizing performance. In this figure, we
+show the impact of different page_size
+settings on throughput, the number of transactions
+processed per second. We see that the throughput
+hits 6,000 transactions per second when the page_size is four kilobytes and
+it drops on both sides. With a lower page_size, the number of pages that
+must be processed increases. With a higher page_size, the amount of relevant data
+in the larger page increases. So we need to strike a balance here for optimal performance. For configuration parameters
+like buffer_pool_size, you must ensure
+that the hardware capability aligns with the
+configuration settings. For example, in Postgres
+default configuration, the buffer_pool_size
+parameter is set to just 128 megabytes. This is because its
+default settings cater to a broad
+range of machines, including emedded machines
+with limited resources. However, this
+conservative setting leads to sub optimal performance in servers with more memory as it leads to unnecessary
+disc IO operations. So it is important to adjust the buffer_pool_size
+according to the available memory
+in the machine, especially in enterprise
+servers to reduce unnecessary disk IO operations
+and enhance performance. Database parameters fall into two categories;
+mutable and immutable. Immutable parameters such as page_size are set at the time of database creation
+and cannot be easily changed because they affect the fundamental storage
+layout on disk. Changing the page_size
+parameter would typically require a complete dump and
+reload of the database. In contrast, mutable parameters like buffer_pool_size
+can be adjusted dynamically at runtime without restarting the database or
+rebuilding the storage layout. So database
+administrators can tune this parameter based on the
+current workload demands.
+ 
+ 
+ 
+>> Another interesting
+challenge in configuration tuning arises
+in cloud database systems. In cloud databases, scaling up resources like CPU and
+memory improves performance, but also increases
+the dollar cost. For example, doubling
+the memory allocated to a cloud instance may double the throughput for a memory
+constrained workload, but it may also triple the
+hourly cost of the instance. Here, the throughput increases from 100
+transactions per second to 200 transactions per
+second when we go from a machine that costs $0.05
+per hour to $0.15 per hour. Given this price
+performance trade-off, decision makers need to
+carefully assess whether the performance benefits
+justify the additional cost, considering both the impact on user experience and the
+budget constraints. To help tune the
+database configuration, several tools exist that
+automatically suggest the settings based on the specific hardware
+and application types. These tools take the
+system's total memory, CPU count, storage type, and application type
+into consideration, and recommend the database
+configuration for maximizing performance
+or price performance. We can classify database
+applications into a few types based on their
+workload characteristics. Different application types have distinct database
+requirements. The first application type is online transaction
+processing or OLTP. Primarily CPU or I/O bound, OLTP applications consist of a large number of short
+transactions like updates. The database size is typically
+slightly larger than DRAM, roughly around one terabyte. The workload consists of a
+lot of short transactions, some long transactions,
+and queries. The second application type is online analytical
+processing or OLAP. These applications are
+I/O or DRAM bound due to their heavy reliance on complex query processing
+over large datasets. The database size for
+OLAP applications can be much larger than DRAM, roughly around four terabytes to accommodate extensive
+historical data. These systems are crucial
+for data warehousing or business intelligence
+applications where large complex reporting queries, such as those involving
+aggregations and joins across vast
+tables are standard. The third application
+type is web applications. Typically CPU bound, these applications
+generally have databases much
+smaller than DRAM, roughly around four gigabytes. The workload consists of
+mostly simple queries aimed at quick retrievals and
+minimal data manipulation. Understanding these different
+application types can help in tuning the database to better support their
+specific needs. Recently, given advances in AI, researchers are exploring how to use reinforcement learning
+for tuning databases. The way this works is the reinforcement learning
+agent interacts with the database by trying different configuration
+settings and observes the impact
+on performance. The agent learns a policy that determines the best action to take under a specific state. Here, the state refers to
+the current settings of the database parameters along with the current workload
+characteristics. For example, the state
+could include the size of the buffer pool and the ratio of transactions and
+analytical queries. The actions involve adjustments to the database parameters. Depending on the state,
+the RL agent might decide to increase or decrease values
+such as buffer pool size. The choice of action is aimed at optimizing
+system performance, such as increasing throughput
+or reducing latency. The reward for database tuning
+is typically quantified as an increase in throughput or a reduction in price
+performance metric. The agent uses this feedback to learn and refine its policy, aiming to maximize the
+cumulative reward over time. By using RL-based
+configuration tuning, the database system
+can become more responsive to its
+operational environment, continuously learning
+and adjusting the configuration to
+meet performance goals. To recap, in this lesson, we saw how tuning the
+database configuration is important for optimizing database performance
+and price performance. We also learned about how
+different application types like OLTP and OLAP, and how database
+administrators optimize their configuration based on the specific needs of
+their application.
+ 
+ 
+>> In this lesson, we will learn about
+techniques for finding and fixing bugs
+in database systems. We will focus on how to
+use tools like GDB for debugging and discuss high level principles
+for effective debugging. The concept of debugging dates back to the early
+days of computing. In 1947, Admiral Grace Hopper was working on the
+Harvard Mark II computer. The Mark II was a complex
+machine that used relays, rotating shafts and clutches
+to perform calculations. While investigating an
+unexplained behavior, the team found a moth trapped
+in one of the relays. The team removed the moth and
+taped it in their logbook, humorously annotating it as the first actual case
+of bug being found. This is the origin of the terms
+computer bug and debugging. The term debugging
+has since evolved to encompass a broad range of activities aimed at identifying, diagnosing and correcting errors in software and hardware. Debugging is crucial
+in database systems as bugs in the code can
+lead to data corruption, performance degradation,
+and even system crashes. We will learn about
+how to use tools like GDB and print statements
+to track down these bugs. GDB or the GNU Debugger is a tool for debugging
+C++ programs. It allows us to observe what a program is doing
+at the moment it crashes or to view
+what the program is doing while it is running
+at some point in time. To use GDB, we
+must first compile the C++ code with the -g option to include
+debugging symbols, making it easier to
+step through the code. Consider a simple
+C++ program where we define a function add that calculates the
+sum of two integers. Using GDB, we can
+set a breakpoint at this function to inspect the
+computation step by step. After compiling this program
+with debugging symbols, we can start it
+under the debugger and observe its execution flow. GDB offers several commands
+for debugging effectively. Run starts the
+program under GDB. Next moves the execution
+to the next line. Print displays the
+values of variables. Break sets a breakpoint at a
+specific line or function. Continue resumes excusion
+until the next breakpoint. Backtrace provides a
+snapshot of the call stack, which is useful for tracing how the program reached
+a certain point. Info locals displays
+local variables in the current stack frame. Breakpoints are a useful
+feature that allow us to pause the program's execution at specific points of interest. This allows the developer to
+examine the current state of the program such as variable
+values and the call stack. Once a breakpoint is hit, you can use commands
+like Next or Step to move through
+the code line by line. Or you can Continue to resume execution until
+the next breakpoint. The Backtrace command
+is useful for examining the cause stack path that led to the current
+execution point, providing context necessary
+for diagnosing the bug. Here is an illustrative
+session in GDB. We first set a breakpoint
+for the add function. We then run the program. When it hits the breakpoint, we run info locals to inspect the value of
+the local variables. We then resume program excusion
+using the Next command. We can print the value of
+the variables x and y. We can then continue execution
+until the next breakpoint. We can also print the backtrace
+to see the call stack. Overall, this GDB session covers the practical
+steps of using the debugger to follow the program's execution flow
+and get real time insights. In this course, you
+should get comfortable with using GDB or a
+similar debugger. It'll be very useful with your programming assignments
+and more importantly, help you become a better
+software developer.
+ 
+ 
+>> Besides GDB,
+print statements are another straightforward
+yet effective way for tracing programe execution and understanding the flow of data. By strategically placing
+print statements at critical locations like function entry or before and after modifying
+important variables, you can gain insights into the program flow and data
+state throughout execution. To enhance the amount of
+information that we can get about objects of a particular
+class in print statements, we need to overload the insertion
+operator of that class. This code snippet demonstrates how the output stream
+operator can be overloaded to alter
+the behavior of the operator for the
+custom person class. It allows person objects to be printed to the standard
+output stream. Inside the function, the
+output stream operator is used to upend the
+person objects attributes, name and age into the output
+stream in a formatted way. It then returns the
+modified output stream, allowing for chaining
+of output operations. In the main function,
+a person object is created and printed to the console using this overloaded output
+stream operator. The result is a
+formatted string output representing Alice's attributes. By defining how custom
+objects are printed, we can visualize complex objects like the state of a buffer
+pool and diagnose bugs. Besides GDB and
+print statements, there are also some high level
+principles for debugging. For example, while
+testing a buffer pool, a practical debugging tip is to configure the size of the
+buffer pool to be very small, like ten pages instead
+of 1,000 pages. A small buffer pool means
+fewer pages to track, making it significantly
+easier to pinpoint bugs occurring in caching decisions or eviction decisions. This approach reduces
+our cognitive load, allowing us to focus on critical aspects of buffer pool management without getting lost in vast amounts of data related to the 1,000
+pages in the buffer pool. Another important advantage of using a smaller
+buffer pool is that edge cases such as buffer pool exhaustion
+and cache evictions arise much sooner. These scenarios will happen much later with a larger buffer pool. Debugging the behavior
+of the buffer pool while handling edge cases makes it easy to cache bugs that would otherwise remain
+obscured for a while. Modular design is super important for debugging
+complex systems, as advocated by Nicholas Worth. For example, with
+a modular design, the buffer manager class
+need not worry about storage management or even
+the cache replacement policy. Literate programming is
+another debugging principle coined by Donald Knuth. It involves writing programs that are understandable
+by humans first and treating documentation as an integral part of
+the programming process. This approach can
+facilitate debugging by making the developer's
+intentions clear. A literate programming
+approach for the buffer manager will include extensive comments
+on the inputs, outputs, and exceptions associated
+with different functions. Another high level
+debugging principle is improving robustness. In the context of
+buffer management, robustness means ensuring
+that the buffer manager can gracefully withstand
+failures like failed disk I/O operations, as shown in this slide. To recap, in this lesson, we learned about how
+debugging is super important for developing a
+reliable database system. We learned about how to use GDB and print statements
+for debugging. We also discussed about
+general principles for debugging complex
+software systems.
+ 
+ 
+>> In this module, we
+discussed about the importance of multi threading and
+debugging in database systems. We covered the
+evolution of CPUs from single core CPUs to
+modern multi core CPUs. We saw how this development
+required a shift in software design towards
+multi threaded processing. We then looked at how
+multi threading without synchronization leads
+to incorrect results. We explored how to
+synchronize threads using mutex to protect data integrity in a multi threaded environment. We learned about fine
+grain locking and the RAII principle in multi
+threaded programming. These techniques help
+improve the performance and robustness of a multi
+threaded database system. We then focused on
+the importance of debugging in developing a
+reliable database system. We learned about how to use
+a debugger for debugging. We also went over several
+high level principles for debugging complex
+software systems.

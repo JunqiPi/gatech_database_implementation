@@ -1,0 +1,94 @@
+1. Consider a transaction designed to transfer funds between two accounts. What does the atomicity property guarantee in this transaction?
+ 
+A) Both updates must succeed together, or neither should affect the database.
+ 
+B) The transaction will be executed with isolation from other transactions.
+ 
+C) The balances will update instantly to ensure data is always consistent.
+ 
+2. A DBMS uses 8 KiB pages with:
+ 
+Page header: 32 B
+ 
+Slot entry: 4 B/tuple
+ 
+Average tuple payload: 128 B
+ 
+We are comparing two page designs:
+ 
+Design 1 – No-slots: contiguous tuples; to find tuple i, linearly scan i tuples. Scan cost: 0.05 µs/tuple.
+ 
+Design 2 – With-slots: slot directory gives constant lookup cost: 0.20 µs.
+ 
+Workload:
+ 
+2,000,000 random lookups/sec, uniformly across tuples in a page.
+ 
+One core does back-to-back tuple lookups. Ignore I/O overheads.
+ 
+Determine the number of CPU cores required to serve the workload with each design. Answer as a pair: Cores required for “No-slots” Design ; Cores required for “With-slots” Design
+ 
+A) 6.0 ; 0.16
+ 
+B) 2.4 ; 0.50
+ 
+C) 3.2 ; 0.40
+ 
+3. Consider the scenario where an application developer is structuring a relational database for a university:
+ 
+Students(StudentID, Name, Major) -- 20,000 students. Primary key: StudentID
+ 
+Enrollments(StudentID, CourseID) -- 100,000 rows (5 courses/student)
+ 
+The database designer considers three possible key designs for Enrollments:
+ 
+Design 1: Primary key = StudentID only, no foreign key.
+ 
+Design 2: Primary key = (StudentID, CourseID), with StudentID referencing Students(StudentID).
+ 
+Design 3: Primary key = CourseID only, with StudentID as a foreign key.
+ 
+Which of the following statements is correct?
+ 
+A) With Design 1, all student enrollments can be stored.
+ 
+B) With Design 2, all student enrollments can be stored.
+ 
+C) With Design 3, all student enrollments can be stored.
+ 
+4. Consider the following function:
+#include <memory>
+#include <stdexcept>
+#include <vector>
+ 
+constexpr size_t PAGE_SIZE = 4096;
+ 
+void bulkLoad(int n) {
+  std::vector<std::unique_ptr<char[]>> pages;
+ 
+  for (int i = 1; i <= n; ++i) {
+    pages.push_back(std::make_unique<char[]>(PAGE_SIZE));
+    if (i == n / 2) {  // simulating failure halfway
+      throw std::runtime_error("Disk full during bulk load!");
+    }
+  }
+}
+ 
+If bulkLoad(10) is called, how many pages are freed during exception unwinding?
+ 
+A) 0
+ 
+B) 5
+ 
+C) 10
+ 
+5. In a DBMS buffer manager, a thread accesses a frame by frame_id, reads/writes its bytes, and may wait on I/O. Which statement is NOT correct?
+ 
+A. Holding only the frame's latch (with pin count = 0) is sufficient to prevent eviction while you use raw pointers into the frame's data.
+ 
+B. A raw pointer into a frame's data must not outlive the pin; after unpin, the frame can be recycled and the pointer can dangle.
+ 
+C. If you block (e.g., on I/O) and later resume, you must revalidate the frame_id to frame mapping before reuse, because the mapping can change after eviction/reuse.
+ 
+D. A nonzero pin count prevents eviction; you still need the frame’s latch while touching its bytes to avoid concurrent modification.
+ 

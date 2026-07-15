@@ -1,0 +1,594 @@
+In this lesson, we
+will learn about how the database system manages database on durable
+storage like disk. We will learn about storage
+technologies and support for file input output
+operations in Spls plus. The next version of Bus DB
+will use these Spls plus features to persist data
+on durable storage. The time taken to run
+queries and transactions in a database system depends on the underlying
+storage technologies. Database systems rely on two primary types of
+storage technologies, volatile storage and
+persistent storage. Each type of storage
+plays a specific role in the life cycle of data
+within a database system. DRAM or dynamic
+random access memory is used for fast short
+term data access. It is primarily used for caching frequently accessed
+data and storing intermediate tables created
+during query processing. However, data stored in memory is lost if the power
+is interrupted. So it is not suitable for
+long term data storage. Despite this, DAM
+significantly enhances database performance
+by facilitating faster access to
+frequently used data. Persistent storage devices like solid state drive or SSD
+and hard disk drive or HDD, the retained data even through power outages and
+system restarts. These devices are the primary storage
+medium for databases and contain everything from tuples and transaction
+logs to database pups. These technologies are important for ensuring the
+durability property in as. Let's look at the
+life cycle of data. Consider a bank transaction. In Stage one, the
+transaction updates are initially
+returned to memory, allowing for rapid
+data processing. DRAM stores hot data like recently accessed
+bank accounts, enabling quick queries and
+updates over these accounts. In Stage two, upon successfully committing
+the transaction, the changes are
+transferred from DRAM to Tisc to ensure that
+the data is safe. Once a transaction is committed, it's permanently
+recorded on disc, safe cording against data loss, even in the case of
+a power failure. DRM supports faster data access, but is not durable. Disc only supports slow data
+access, but is durable. This two stage data life cycle leverages the speed of DRM and the durability of
+disc to ensure that transactions are not only
+fast, but also secure. Given this context about
+storage technologies, let's move on to file
+input IPut operations for interacting with persistent storage devices in CPS plus.
+ 
+FiO operations in CplS plus are important for writing and reading data from the
+database file on disk. These files include
+the actual database, as well as other files
+like the transaction log, the configuration
+file, et cetera. File AO on disk enables
+the database system to manage large databases that
+do not even fit in DRM. In Bus DB, we import data from a file called
+output dot text. As shown in this code snippet, we first set up a stream
+to read from the file. In C plus plus, STD IF stream is used to handle
+input file streams. We first open the file
+called a output dot text. After opening this file stream, we proceed to read pairs of integers from the file
+using a wild loop. We continue to read
+from the file as long as there are integers
+to read from the file. Each pair of integers is read into the variables field
+one and field two. These integers correspond to the key and value
+columns in a couple. Together, they correspond
+to a row in the table. Once we read a pair of integers, we construct a couple and
+insert it into our table. Lastly, we perform an
+aggregation query on this table. Before proceeding
+with file operations, we first verify the presence of the file in the file system. If the file does not exist, we can alert the user using the STE CR stream and terminate the program
+by returning one. This type of error handling
+is super important for improving user experience and avoiding data corruption. To assess the efficiency
+of database operations, we use the chrono
+library in CPlS plus to measure the time
+taken to execute queries. This is done by
+recording the time at the start and the end of the database operations
+with the difference providing the overall time
+taken to do those operations. Understanding the
+execution time of database operations
+is useful for optimizing database
+performance as it helps pinpoint slow operations and identifies potential
+areas for improvement. Tim dressers also
+serve as a benchmark, allowing us for a
+comparative analysis of performance across different
+versions of PS DP. To recap, in this lesson, we covered the
+different types of storage technologies and their importance in
+database systems. We also discussed about file IO operations in CPlS
+plus and explored how these operations are used in BS DB to process
+data stored on disk.
+ 
+In this lesson,
+we will introduce the field class to support
+data types beyond in teachers. Support for diverse
+data types is very important for modern
+database applications. We will also learn about several important concepts in CPlS plus, like constructors and
+destructor functions and the new and
+delete operators. Currently, the Tuple class in DB is designed to only handle
+integer key value pairs. However, modern database
+applications need other data types like floating
+point numbers and strings. To enhance Bz DB's ability to handle different data types, we introduce the field class. The field class has a member
+variable called type. Field type is an om that defines two constants
+int and float, representing the two
+possible data types that a field object can hold. Noms provide a way to define
+a set of named constants, making the code more
+readable and maintainable. The field class uses a
+union to allocate memory for either an integer or a float based on the
+type of the field. Unions allow different
+data types to share the same memory location for
+efficient use of memory. When a field object is created, the allocated memory
+is sufficient to accommodate the largest
+member of the union. In this case, since both integer and
+floating point elements require four bytes
+on a the bit server, the union would only
+use up four bytes. If the type is set to int, the integer value is
+stored in this memory. If the type is set to float, the float value is
+stored in this memory. The field class has two
+constructor functions, one that takes an integer and another one that takes
+a floating point number. The constructor with an
+integer parameter initializes the field object with the integer value and
+sets its type to int. Similarly, the constructor with the float parameter initializes the field object with a float value and sets
+it type to float. This technique is called
+constructor overloading, where multiple constructors
+are defined with different parameter
+types to provide flexibility when creating
+objects of the field class. The print method prints the value stored in the field
+object based on its type.
+ 
+ 
+Let's next discuss about constructors and destructors
+in Cy plus plus. Constructors in C
+plus plus are used to initialize objects
+when they are created. In the field class, constructors are specifically
+designed to initialize the fields with either
+integer or flowed Tara types. We next generalize the
+tuple class instead of being limited to storing
+integer key value pairs, each tuple now holds a
+vector of field objects. So each field corresponds
+to a column in that tuple. Now that tuple can
+contain five fields, and each field can be
+integer or a float value. This generalization significantly expands
+the capabilities of Bz DB to store and manage a more diverse
+set of data types. We next update the
+insert function in bus DB to accommodate the
+newly generalized tuple class. This function now constructs tuples that can hold
+various data types, including a new field for
+floating point numbers. In this way, we can have a richer representation of
+data within the database. Many database applications
+handle textual data. To support such applications, let's further extend the field
+class to handle strings. In particular, we extend the field type um to
+also include string. And extend the data member
+to be a union that can hold an integer or a float or a pointer to the
+characters of the string. This generalization
+allows BSD B to handle not only numerical
+but also textual data. By supporting integers,
+floats and now strings, the field class is now a polymorphic container
+for diverse eratypes. Polymorphic means
+having multiple forms. Here, a field object can take an integer form or a floating point number
+form or a string form. With the addition of
+strings to the field class, we need to add support for
+dynamic memory allocation. This is because strings can
+be of different lengths. For instance, here, the string database
+has eight letters, and the string polymorphism
+has 12 letters. Unlike integers and float
+that have a fixed length, we need flexible
+memory allocation to accommodate this variability
+in the size of strings. The constructor for
+the string type in the field class dynamically allocates memory to
+store the string data. The constructor function takes a string parameter
+as it initializes the type member of the
+field object to string and dynamically allocates memory on the heap to store the
+characters of the string. The length of the
+allocated memory is the size of the given
+string, plus one. The plus one accounts
+for the null terminator required to identify
+the end of the string. Then we copy the characters
+of the string into this dynamically allocated
+memory data dots. Lastly, we add a null
+terminator at the end of this character array to
+mark the end of the string. In C plus plus, dynamic
+memory allocation on the heap is accomplished
+using the new operator. Allocating on the heap is
+important to ensure that the string persists beyond the scope of the
+constructor function. A heap allocated variable lasts for the entire duration of the program until it is explicitly destroyed
+in the program. This allows us to persist the string beyond the scope
+of the constructor function, and the string lasts for the entire duration
+of the program. Destructors in C plus plus are special class functions that are invoked when an object goes out of scope or is deleted. This tippet is the destructor
+for the field class. It is responsible for cleaning up the
+memory allocated for a field object when
+it goes out of scope or is explicitly deleted. I statement checks if the
+type of the field object is string and if the datas
+pointer is not a null pointer, indicating that memory was actually allocated
+for the string. If both conditions are met, this destructor function deletes the dynamically
+allocated memory on the heap to prevent
+memory leaks. Complementing the new operator, the delete operator is used to free the memory
+allocated on the heap. For every new operator, there should be a
+matching delete operator to prevent memory leaks. This is super important
+because memory leaks can result in gradual accumulation of unused memory over time, leading to increased memory
+usage and potentially causing the database system to crash or become very slow due to
+insufficient memory. To wrap up in this lesson, we discussed about
+how we can use a field class to support diverse
+data types like strings. We learned about how
+constructors and destructors are special class functions
+that are automatically called when an object of that class is created
+or destroyed. We also discussed about the new and delete operators for dynamic memory management in C plus plus and why it is crucial to prevent
+memory leaks.
+ 
+ 
+ 
+In this lesson, we first explore the challenges posed by
+traditional raw pointers, including memory leaks
+and dangling pointers. We will then see
+how smart pointers help address these issues, thereby enhancing code safety
+and code maintainability. In the current field class, we use a union that includes a raw character pointer
+to manage string data. This approach is
+risky as there is a possibility of a memory leak if you forget to release the
+memory in the destructor. There are four
+important problems associated with raw pointers, memory leaks, dangling pointers, double free errors, and
+ownership ambiguity. We will next go over
+each of these problems. Memory leaks occur when
+dynamically allocated memory is not properly deallocated. In this example, the
+allocated memory for leaky pointer is never freed as it is not
+explicitly deleted. This results in leaking memory, which over time
+can significantly degrade the performance and stability of the
+database program. Dangling pointers arise
+when a pointer continues to reference a memory location long after it has been freed. In this example, dangling
+pointer is created and deleted. Accessing it after
+its de location can lead to data corruption, and even program crash. Double freeing memory or attempting to deallocate
+the same memory twice can lead to runtime
+errors or undefined behavior. This example illustrates how the double trouble pointer is
+incorrectly deleted twice. This error occurs when there is a mismanagement in the
+life cycle of a pointer, leading to multiple delete calls on the same memory allocation. Raw pointers do not
+inherently express ownership, so it is not clear who is responsible for deallocating the memory that they point to. This ambiguity can complicate memory management when multiple functions in BzDB interact
+with the same pointers. In this example, it is
+unclear if MPointer and new pointer should be deleted by function one or function two. Should the calling
+function delete the return pointer, et cetera. Given this context about
+the perils of raw pointers, let's next discuss
+about smart pointers and how they address
+these problems. Smart pointers like
+STD Unique Pointer, are designed to provide
+automatic memory management. They address the core issues associated with raw pointers by providing a robust
+framework for managing the life cycle of dynamically
+allocated objects. They effectively prevent
+memory leaks and address the ownership ambiguity
+problem of raw pointers, thereby enhancing code safety, readability and maintainability. A steady unique pointer
+automatically manages the memory it points to deallocating it when the pointer
+goes out of scope. For instance, when
+the function exits. This automatic
+management ensures that memory leaks are prevented as there is no need
+for manual deletion. While using Unique pointer, when we reset the smart pointer or when it goes out of scope, it safely releases its
+ownership and avoids becoming a dangling pointer by setting
+itself to null pointer. In this example, safe pointer becomes null pointer
+when it is reset. This behavior ensures
+that it does not become a dangling pointer and continue to reference
+deallocated memory. Unique Pointer maintains unique
+ownership of its memory, meaning that the memory
+is freed exactly once, either when the pointer is reset or when it goes out of scope. This unique ownership
+model inherently prevents double freerers as the memory management
+is controlled. In this example, there is no
+need to delete safe pointer. Spot pointers clearly define
+ownership responsibilities. SDD Unique Pointer,
+for instance, uses explicit ownership transfer
+mechanisms like SDD MU, eliminating any ambiguity
+about who owns the memory. This explicit transfer of ownership simplifies memory
+management and ensures that each piece of
+allocated memory has a clear and single owner
+responsible for its life cycle. In conclusion, we learned
+how smart pointers offer a significant improvement over raw pointers by automating
+memory management, enhancing code safety, and clarifying ownership
+responsibilities. So in this course, in all
+the programming assignments, we will encourage you to use Smart Pointers for
+memory management.
+ 
+ 
+In this lesson, we
+will focus on adopting smart pointers in the
+field and tupple classes. We will then explore copy
+semantics in CiplusPlus as they come into play when a field object is
+copied into the table. Lastly, we will discuss
+about heap and stack memory allocation to better understand where data resides. In our field class,
+let us move away from manual memory
+management and instead use a smart pointer for managing
+a variable size string. This change is
+aimed at improving safety by automating
+memory cleanup, thereby reducing the risk of memory leaks and
+simplifying the code base. Integrating Unique pointer into the field class eliminates the need for manual
+delete calls. This automatic memory
+management is due to the destructor of
+SDD Unique Pointer, which is designed to handle
+memory cleanup on its own. So the default
+destructor provided by the C plus plus
+compiler is sufficient. This approach reduces
+boilerplate code and improves code readability. It also minimizes the risk of memory leaks that can occur with manual memory management. In the next version of Bz DB, we update the tuple
+class to contain a vector of unique
+pointers to field objects. Unique pointer is
+designed to have sole ownership of the
+object it points to, so it cannot be copied to
+ensure unique ownership. If we need to support
+copying of tuple objects, we will first need to support
+copying field objects. Copy semantics define the
+behavior of a C plus plus class when its objects are
+copied, assigned or passed. These operations
+are automatically invoked when an object
+is passed by value, returned from a function or explicitly copied
+via an assignment. With dynamic memory management, incorrect handling of copy
+semantics can lead to issues like memory leaks
+and dangling pointers. The two key components
+of copy semantics are the copy constructor and the copy
+assignment operator. The copy constructor initializes a new object as an exact
+copy of an existing object. The copy assignment
+operator assigns the contents of one
+object to another object. Specifically, it is
+invoked when an object is assigned the value
+of another object, not when a new
+object is created. The field class copy constructor
+is shown in this slide. The copy constructor for the field class
+ensures that when a new field object is created as a copy of an existing one, it receives a new independent
+copy of the string. This is known as deep copying. Deep copying ensures that each field object owns its
+own copy of the string. The copy assignment operator
+is a class method used to assign the contents of one field object to
+another field object. This operator is
+crucial for handling the transfer of data
+between objects. Similar to the copy constructor, this operator also performs a deep copy of the
+dynamically managed string. Although Unique pointer
+cannot be copied, it supports smooth semantics, which allows the ownership of the managed object to be transferred from one
+pointer to another. Using SDD Mu, we can
+efficiently transfer resources within our tuple class without the overhead of copying.
+ 
+ 
+We will next
+differentiate between heap and stack memory allocation to better understand
+where our data resides. The heap is used for
+dynamic memory allocation. Heap allocated variables
+have a lifespan that extends beyond the scope
+in which they were created, making them suitable for more
+flexible data management. They persist until they are
+explicitly deallocated. The heap is ideal for objects and data structures
+whose size cannot be determined at
+compile time or when data needs to persist across different
+parts of a program. When a function is called, its variables are
+allocated on the stack, and they are automatically deallocated when the
+function returns. Stack allocated
+variables are only alive during the block scope
+in which they are defined. Exiting the block means
+that these variables are automatically deallocated
+and no longer accessible. Stack is best suited for temporary variables or data whose memory size is
+known at compel time, providing efficient
+memory management for short lived data. This example
+demonstrates the use of a smotPointer for safely managing a vector
+allocated on the heap. The vector is managed
+and access safely with the cleanup happening
+automatically when the unique pointer
+goes out of scope, which occurs when the main
+function finishes excusion. The create vector on
+heap function highlights the ease of managing dynamic
+memory with unique pointer. This approach ensures that the
+memory is properly managed across functions like create vector on heap and
+the main function. In contrast, in this example, create vector on stack function allocates a vector on the stack. When the vector is accessed
+in the main function, that is undefined
+behavior in C plus plus. The program may crash or worse silently produce
+incorrect results. This example highlights
+the dangers of inappropriate usage of
+stack allocated variables. The key differences between heap and stack allocated
+variables are threefold. First, stack variables are automatically managed by the
+C plus plus runtime system, while heap variables require management by the programmer. Second, the stack has a much smaller size limit
+compared to the heap, making it less suitable for large or variable
+sized data structures. The heap can accommodate
+much larger allocations as it is limited primarily by
+the systems available DRM. Third, stack allocation is generally faster than
+heap allocation, as the stack is a contiguous
+block of memory and there is no overhead associated with managing heap memory
+like fragmentation. In this lesson, we learned
+about the benefits of adopting smart pointers in the field and tuple classes. We then discussed about
+the copy constructor and copy assignment
+operator in Cyprus plus. Lastly, we went over
+the differences between heap and stack
+memory allocation.
+ 
+ 
+This lesson explores how a database system
+organizes tuples as pages. We will also discuss about
+techniques for converting in memory pages into a format suitable for disk storage
+and the reverse process. Currently, BSDB manages
+all of its data in memory. However, this approach
+means that all data is lost when the program terminates
+because DRM is volatile. Persistence in database refers to the capability to store data in a way that it survives across multiple sessions
+of the database program. Even after we terminate
+the bus DV program, the data must be
+safely stored on disk. Without persistence, a
+database cannot truly serve its purpose of reliably storing and
+managing data over time. To ensure data persistence, we introduce the page class in the next version of Bus DB. Pages serve as the basic unit
+of data storage on disk. Each disk page is typically
+4 kilobytes in size. Bus DV groups duples together into these
+fixed size pages, mirroring how data is
+physically stored on disk. The page class dynamically
+manages tuple insertions, ensuring that the total size of tuples stored in a page does
+not exceed its capacity, which is typically
+set to 4 kilobytes. Before adding a tuple, we calculate the combined
+size of existing tuples and the new tuple
+to determine if it fits within the
+PDs slice limit.
+ 
+ 
+We will next look at how to write in memory pages to disk. Serialization is the
+process by which we convert in memory data into a format suitable
+for storage on disk. Conversely, desalization
+involves reconstructing the in memory data from
+the data stored on disk. Serialization and
+deserilization process are essential for writing to and reading from
+persistent storage. In the page class, serialization
+involves converting the tuples into a format that can be directly
+returned to a page on disk. This process starts by first writing out
+the total number of tuples to the file followed by serializing each tuples data. Each tuples data is
+serialized field by field. We first record the number of fields contained
+in each tuple. For each field, the fields
+type and data length are first recorded to ensure accurate reconstruction
+during deserilization. The data length is important
+during desaliation for dynamically sized
+fields like strings as it determines how
+much data to read back. Finally, we write the
+actual data of the field. This code snippet is a part of the alzation
+function in bus DB. The four loop itrates over each tuple stored
+in the tuple vector. Each tuple is accessed
+by reference to avoid copying for
+improved performance. The reinterpret cast
+is used to cast num fields to a constant
+character pointer as required by the right method. The nested four loop itrates over each field within
+the current tuple. Similar to the tuple loop, it access each
+field by reference. It first writes the type
+of the field to the file. This type information
+is used during dealiation to correctly
+interpret the data. It then writes the length of the data stored in the field, which is crucial for variable length data
+types like strings. This value helps ensure that exactly the right amount of data is read back during desaliation. Finally, it writes the actual data of the
+field to the file. If the field data is a
+dynamically allocated string, fielddata dot get provides a
+pointer to the data array, and field data length specifies the number
+of bytes to write, ensuring that all the fields
+data is written correctly. Overall, this code
+zippet effectively serializes each tuple into a binary format suitable
+for disk storage, writing not only the data, but also the metadata like field count and
+data length that is necessary for accurately
+reconstructing the tuples during the de
+seralization process.
+ 
+ 
+Now that we know how to
+serialize tuples to disk, let's next look at
+how to transform on disk pages back to
+in memory tuples. Desaliation in bus
+DB involves reading the minor data from a file and reconstructing the
+tuples accordingly. This starts with reading the number of tuples
+contained in the page because that sets the foundation for reconstructing the in memory
+structure of the page. The reconstruction of each tuple starts by determining the
+number of fields it contains. This loop then iterates
+through each field expected in a tuple with num fields indicating how many
+fields to be read. Each field within a tuple is individually restored
+by reading its type, data length, and
+the actual data. We read the type of the
+field from the binary file. The reinterpret cast is used to convert the
+pointer to type to a character pointer as the read function takes a character pointer
+as the first input. While reading the data, we first dynamically
+allocate memory on the heap to store the fuse data. The memory is allocated to hold exactly data length characters. We then read data length
+bytes of data from the file into the memory
+pointed to by data. The data dot G function returns a pointer to the managed memory, allowing the read
+function to write directly into the
+allocated space. Once all the fields are
+read and recreated, they are assembled back into their respective tuples
+based on their data type, whether it's an integer,
+float or a string. With all the fields correctly
+desised and reassembled, the tuple is fully
+reconstructed, marking the end of the desaliation process
+for that tuple. Overall, desaliation turns
+raw binary page data from a file on disk back to in memory tuples for
+processing queries. In this way, desaliation enables accurate reconstruction of database tuples
+from disk storage. We next focus on using
+this page class in bus DB. Instead of managing
+only in memory tuples, we now integrate
+the serialization and dealiation
+mechanisms into Bz DV. This allows us to write a page with tuples to disk and
+read it back again, thus extending Bz
+DB's functionality to support durable on
+disk data storage. To recap in this lesson, we looked at how
+the database system organizes tuples into pages. We also examined how BSD B serializes and de serializes pages to achieve persistence.
+ 
+ 
+ 
+In this lesson, we will focus on simplifying the serialization
+process within Bz DB. We will refactor bus DB to
+simplify salisation and dealiation by
+spreading the logic across the page tuple
+and field classes. We will also introduce
+a static method for dealiation in the page class
+to improve efficiency. To simplify calization
+in the page class, let us enhance the field class to handle its own calization. This method allows each
+field type, whether string, integer or float to be serialized effectively
+to an on disk format. By delegating the seralization responsibility
+to the field class, we ensure that each
+datatype is handled appropriately according
+to its specific needs. Following the refactoring
+of the field class, let us also update
+the tuple class with its own calzation and
+dealiation methods. This capability ensures
+that each tuple can independently
+manage the lization of its constituent fields. Note how the CLS function in the tuple class relies on the CLS function in
+the field class, thereby spreading the iliation
+logic across both classes. With the new
+salization methods in place for field
+and tuple classes, the page class write function
+is greatly simplified. Now, the page class only needs
+to manage the sequence of tuple salization without
+really worrying about the intricacies of the salon
+process for those tuples. We first serialize the number
+of tuples in the pig and then loop through each tuple and invoke its
+serialized function. By delegating the responsibility of Lization to the field
+and tuple classes, we enhance the modularity
+and maintainability of BSDB. This separation of
+concerns not only makes the code cleaner
+and easier to understand, but also allows for independent class updates
+and improvements to the logic of fields and tuples without impacting the
+broader page class logic. Let's next discuss about adding a static method for
+desalization in the page class. Currently, during desalization,
+we create a page object, page two and populate it
+with the data from the file. There are two steps here, object creation followed
+by data loading. We can streamline this
+approach and merge object creation and data loading
+into a single operation. In the next version of Bz DB, we introduce a new
+static method called deserialize in the page class that is aimed at reconstructing
+pages from disk. In C plus plus, methods can be classified into static
+and instance methods. Static methods are used for functionalities that pertain
+to the class as a whole, allowing them to be invoked without creating an
+object of the class. In contrast, instance methods
+are used to operate on unmodified data contained within a specific instance
+of the class. The static decilize method facilitates direct
+loading of tuples from disk data without the necessity to instantiate
+a page object beforehand. This approach streamlines
+the desyation process by eliminating the need for a temporary page
+object and directly constructing the page with
+its complete state as stored. Bz DB uses both static
+and instance methods to manage page objects. It uses a static method for
+creating a new page from disk data and an instance method for updating existing
+page objects. In conclusion, in this lesson, we learned about simplifying the seriation process using
+a more modular approach. We then discussed about static instance methods in C plus plus and how we can use a static method for
+desaliation in bus DB.
+ 
+In this lesson, we will discuss about how to support deletion of tuples and how to
+ensure consistency between data in memory
+and data on disk. Applications often
+delete old tuples that are no longer needed. For instance, if a user deletes their account
+in a social media app, then the tuples associated with that user must be deleted
+from all the tables. We implement a delete tuple
+method in the page class that removes a specific tuple based on its index
+within the table, which is essentially
+a vector of tuples. This function first checks if the provided index is within
+the bounds of the vector. If the index is out of range, it prints an error
+message and exits. If the index is valid, it decreases the use
+size of the page by the size of the tuple being deleted and then removes
+that tuple from the vector. We introduce logic to
+selectively delete tuples to simulate data
+life cycle management. In this code, we skip deletion once for every hundred
+insertion attempts. This approach illustrates
+the importance of periodic database
+cleanup to ensure that the database system does not slow down due to outdated data. When a tuple is deleted from
+a loaded page in memory, this change does not
+immediately reflect on disk. If we deserialize
+the page from disk, it shows the original
+unchanged page. Here, loaded page two still contains the deleted
+tuple at slot zero. This example highlights
+a critical issue of persistence mismatch where in memory changes are
+not synchronized back to disk leading to
+data inconsistency. To resolve the issue
+of data inconsistency, it is crucial to synchronize in memory
+changes back to disc. So how do we resolve
+this problem? After performing deletions or other updates in
+the in memory page, we must trigger the
+serialization process to write these changes to disk. This ensures that the data
+on disk remains consistent. Here we see how to do
+data synchronization. After deleting specific tuples at slots zero and
+seven in the page, we serialize the page back to disk using
+the right method. After desalization, the loaded page now
+reflects these deletions. Loaded page two no
+longer contains the deleted tuples at
+slots zero and seven. Thus, this data synchronization
+step is important for maintaining data
+consistency between in memory and non disk data. As a recap, in this lesson, we covered the
+fundamental aspects of tuple deletion and data synchronization
+in database systems. The main idea is that every
+change in memory made by a committed
+transaction should be reflected on disk to
+prevent data loss.
+ 
+ 
+In this module, we learned about how the database system
+stores database on disk. We discussed about
+the differences between memory and disk. We then went over how file
+IO operations in CPlus plus are important for saving and retrieving data from
+database files on disk. We also discussed about
+smart pointers and adopted them in the field
+and tuple classes in Bus TB. We then focused on how data
+synchronization is vital for maintaining data
+consistency between in memory and on
+disk database pages.

@@ -1,0 +1,347 @@
+>> In this module, we will learn about
+indexing data using a Hash Table
+to speed up queries. We will learn about indexing
+data for quicker retrieval without searching
+through every tuple in the table while
+answering a query. We will then discuss
+about hash tables, a widely used data structure
+for indexing data. We will also learn about
+sophisticated policies for building hash tables
+like double hashing.
+ 
+>> In this lesson, we
+will focus on indexing in database systems and the relevant indexing
+data structures in C++, map and unordered map. We will then present a custom hash index
+data structure that we will build from
+scratch for bus DB. Indexing in databases is
+similar to an index in a book. It allows for quick
+data retrieval without needing
+to search through every tuple in the
+table sequentially, like finding all users
+based in Atlanta. The term index comes from the Latin word indicare which means to indicate or point out. In books, an index helps readers locate information quickly
+without reading every page. Similarly, a database index helps locate relevant
+tuples efficiently. In C++, STD map and STD unordered map are two primary containers
+used for indexing. Map maintains key value pairs in a sorted order using a
+balanced binary search tree. This ordered nature ensures that operations such
+as searching for a key and inserting a key have a logarithmic
+complexity of log in, where N is the number
+of keys in the index. Map is particularly useful for queries where the order
+of the keys is crucial, like finding products in
+a particular price range. On the other hand,
+unordered map uses a hash table for storing the
+keys in no particular order. Unordered map supports faster searching and
+insertion operations with an average case
+complexity of O(1), which is constant time independent of the
+number of keys CN. However, it also has a worst
+case complexity of O(N), which can happen when
+we need to go over all the keys in the hash table to find the key in
+the worst case. The primary differences
+between map and unordered map lie in their ordering,
+implementation, and performance. While STD map is ordered and ensures
+that keys are sorted, unordered map does not
+maintain any order. STD Map is implemented
+using a binary search tree, ensuring ordered access and
+efficient range queries, like finding all the
+employees earning a salary between $5,000 and $10,000, while unordered map uses a hash table that
+provides faster access, but at the cost of more
+expensive worst case scenarios. In buzzDB, we have
+so far directly used the standard STL unordered
+map to build an index. To learn more about the
+internals of the index, let's start building our
+own index data structure. To start off, let's first write a hash index class that just wraps around
+the unordered map. We will later build
+our own hash table. The hash index class
+has two methods, the insert or update method that supports inserting a new
+key value pair or updating the value associated with the
+key if the key is already present in the index and
+the get value method, which supports
+retrieving the value associated with a given key. This simple indexing
+structure is sufficient for managing
+key value pairs in buzzDB. The hash index is integrated
+during the scanning phase of buzzDB where each tuples key
+value pair is processed. In the scanned table
+to build index method, we iterate over
+pages and tuples, extracting key value pairs and inserting them
+into the hash index. This is how we build the index. In this version of buzzDB, the hash index class still uses the unordered map to
+manage key value pairs. In the next version, we will
+replace unordered map with a custom hash table
+so that we can learn about implementing an index
+structure from scratch. To recap, in this lesson, we discussed about
+indexing in C++. We learned about the
+implementation details and differences between
+map unordered map. We also discussed about
+how we are getting started with developing a
+custom hash table for duzzDB.
+ 
+>> In this lesson, we will
+focus on the mechanics of storing and retrieving key
+value pairs in hash tables, the role of hash functions and handling collisions
+in a hash table. By the end of this
+lesson, you should have a clear understanding of how a hash table data
+structure works. You can think of a hash table as a cabinet of drawers where each drawer represents
+a slot for storing a piece of paper with a key
+and the associated value. A hash table allows
+us to quickly access data without having to sequentially search through
+each slot in the cabinet. For instance, let's say we are searching for key
+15 in this table. Instead of
+sequentially searching all the 10 slots from 0-9, we try to locate key 15
+directly in the hash table. This direct access
+is possible by using the same hash function for storing and finding keys. To store data, we apply
+the hash function on the key to calculate which slot the key value pair
+should be stored in. For instance, here, let's say the hash function is key mod 10. The mod operation
+returns the reminder, that is what remains after
+you divide the key by 10. It is like doing
+division but instead of carrying about how many
+times 10 fits into key, you care about what's
+leftover after you have divided key by 10 as
+much as possible. Here, the key is 15. If you divide 15*10
+since 10 times 1 is 10, the remainder is 5. So 15 mod 10 is 5. So we go to the fifth slot in the array and store the
+key value pair there. As this slot is unoccupied, it is fine to put the key
+value pair in that slot. Let's next insert the key
+26 with a value grape. Now, 26 mod 10 = 6
+because 26 is 20 + 6. So we place this key
+value pair at slot 6. Let's next insert the key 56. Now, 56 mod 6 is
+also 6 because 56 is 50 + 6 so we try to place this
+key value pair at slot 6. Since slot 6 is already occupied we need to
+find another slot. When two different keys
+hash to the same slot, it is known as a hash collision. A common technique to handle collision is just to move on to the next slot and keep searching until an
+empty slot is found. So we move on to the next lot, slot 7 and place
+the key 56 there. To retrieve data from
+a hash table we apply the same hash function on the key to find the
+expected drawer. Let's say we need to find the value associated
+with key 15. We do 15 mod 10, and the remainder is
+5 so we check slot 5. As the slot contains key 15, we just retrieve the key
+value pair from that slot. Let's say we next need to find the value associated with 56. We do 56 mod 10 and
+the remainder is 6, so we check slot 6. Now slot 6 contains key 26, which is not what
+we are looking for. So we move on to the
+next slot, slot 7. As slot seven contains key 56, we retrieve the key value
+pair from that slot. Let's say we next need to find the value associated with 86. We do 86 mod 10 and
+the remainder is 6, so we check slot 6. Now, slot 6 contains key 26, which is not what
+we are looking for. So we move on to the
+next lot, slot 7, and slot 7 contains 56, which is also not what
+we are looking for. So we move on to the next
+slot 8 and slot 8 is empty. The empty slot means that key 86 is not present
+in the hash table. So the overall algorithm
+is to sequentially check the next slots until
+an empty slot is found, even wrapping around to the beginning of the
+hash table if necessary. So far we have used a simple mod function
+for hashing keys. The hash function is a very important component
+of the hash table. It maps keys into array indices. A simple hash function
+involves the modulo operation, where the key is divided
+by the number of available slots and the
+remainder determines the index. This simple hash function
+ensures that every key maps to a slot within the
+bounds of the hash table array. It distributes the keys
+all across the array. When different keys
+hash to the same index, it is known as a collision. A common technique to handle
+collision is linear probing. With linear probing, if the
+intended slot is occupied, we check the next slot and so on until an empty slot is found. So if slot 8 is taken, we check slot 9, slot 0, slot 1, and so on until the
+empty slot 2 is found. With linear probing,
+the formula to compute the index of
+the next slot to look up is given as the hash of
+key plus K mod table size. Here, the hash of key is the initial hash
+function applied to the key and K is the number of steps we are moved from
+that initial slot. So we increase K by one each time we move
+to the next lot. K is 0, 1, 2, and so on until we
+find an empty slot. As this formula is linear
+with respect to K, it is known as linear probing. Now let's look at the code. The hash entry struct is a fundamental component
+in our hash table. It stores two pieces
+of information, a key, and a value, both of which are integers. The hash table is a vector of optional hash entry objects. It is simply array
+of drawers where each drawer can hold a
+hash entry or be empty. The std optional
+wrapper allows us to handle empty slots in our
+hash table gracefully. The constructor
+initializes the hash table with a fixed capacity
+of 100 slots, so we can only store 100 key value pairs
+in this hash table. Let's next look at the insert or update function for inserting a new key value pair or updating the value associated with the key already
+stored in the table. This function begins
+by calculating the index for the key
+using the hash function. If the target slot is empty, we insert a new hash entry. If the slot already contains
+an entry with the same key, we then simply update
+the existing value. In case of collisions where the initial slot is occupied
+with a different key, we do linear probing. We check subsequent slots in a linear sequence
+by incrementing the index until an
+appropriate slot is found or we return
+to the starting point. If we return to
+the starting point then the hash table
+itself is full. The G value method
+retrieves the value associated with a specific
+key from the hash table. It also starts by calculating the initial index using
+the hash function. The method then checks
+if the current slot contains the desired key and
+returns the value if found. If the slot does
+not match the key, the method uses
+linear probing to examine subsequent
+slots until the key is found or an empty slot is found indicating that the
+key is not in the table. If the key is not found, the method returns minus one signaling that the key is
+not found in the index. Let's next look at the
+computational complexity of the hash table operations. Both insert and find operations have an
+average case performance of O of 1 where there are no collisions
+or few collisions. O of 1 or constant time complexity means
+very fast operations, regardless of the number of key value pairs N in the table. However, the performance
+of these operations can degrade to O of N under
+very high collision rates. High collision rates can
+come from high occupancy in the hash table or when a
+bad hash function is used. For example, if you use
+a bad hash function like hash of key always
+maps to slot Phi, then all the entries will crowd in one area
+of the hash table. This phenomenon is
+known as clustering, and it leads to worst case linear train performance
+in the hash table. To recap, in this lesson, we covered the fundamentals
+of hash tables, including their
+structure, the importance of hash functions and
+collision handling. We will next learn about
+techniques to better handle collisions and avoid
+the clustering problem.
+ 
+>> In this lesson,
+we will discuss about how to delete keys in the hash table and how to track positions of keys inside the hash
+table for debugging. Position tracking
+will help us better understand the efficacy of our
+collision handling policy. Removing a key from the
+hash table is a bit tricky. Let's assume that this
+is our hash table and we are trying
+to find key 32. Now, 32 mod 10 is two. So we start searching
+for slot 2. Slot 2 does not contain key 32, so we move on to slot 3, then slot 4 until we reach
+slot 35 where key 32 is found. Let's say we next want
+to delete key 13, 13 mod 10 is three, so we look at slot 3. Slot 3 does contain key 13, so we just go ahead and remove this entry
+from the hash table. When we remove key 13
+from the hash table, that leaves a hole in the table that disrupts
+the probing sequence. Let's say we again
+try to find key 32. Now 32 mod 10 is two, so we start searching at slot 2. Slot 2 does not
+contain the key 32, so we move on to slot 3, but slot 3 is now empty, so we give up on the search and return that the
+key is not found. This is not correct since key 32 is still there in slot 5. To solve this whole problem, one solution is to rehash
+all the keys from scratch again into another
+empty hash table so that the whole disappears. But this approach is super slow because we need to hash
+all the keys again. A simpler solution is to
+mark an entry as deleted by setting a flag to zero without actually removing
+it from the table. This helps preserve
+the integrity of the probing sequence. For example, let's
+say we try to find key 32 after deleting key 13. Now, 32 mod 10 is two. So we start searching at slot 2. Slot 2 does not contain key 32, so we move on to slot 3. Now slot 3 is not empty
+but marked as deleted, so we move on to slot
+4 and then slot 5, where we find key 32. This is exactly what we want.
+Let's look at the code. In the updated
+hash entry struct, we add an exit flag
+to mark an entry as deleted without actually
+removing it from the table. By default, the excess flag is set to true in
+the constructor. When we lazily delete the key, we set it to false signaling that the key is
+deleted in the index. To enhance memory efficiency, let's switch from
+using a vector to a static sized array for
+storing the hash table entries. By allocating the
+memory upfront, we reduce the
+overhead associated with dynamic memory
+allocations inside the vector. When a vector's capacity is exhausted and more
+entries need to be added, it allocates a new memory block, copies the existing
+entries to the new block, and deallocates the old block. This is conceptually similar
+to the rehashing process. In the next version of bus DB, we introduce position
+tracking in the hash table. Each entry locks its position within the array upon insertion, allowing us to understand the distribution and location of entries within the table. Position tracking
+provides deeper insights into the collision
+handling policy. When inserting or updating
+entries in the hash table, we record the entry's position. This is done by checking if the given slot is
+occupied, and if not, we insert the new entry with its corresponding index
+marked as its position. As we discussed earlier, linear probing can lead
+to a clustering problem. For example, if the hash
+function is key mod 10 and we insert a set of keys that hash
+to the same index like 2, 12, 22 and 32 and so on. This will result in
+these keys forming a contiguous cluster
+in the hash table. This clustering
+increases the likelihood of collisions as
+the clusters grow, making subsequent
+insertions more prone to conflict and compounding
+the clustering effect. It also makes searches for non existent keys like
+key 31 inefficient as it requires traversing the entire cluster thereby
+degrading performance. To recap, in this lesson, we looked at how
+to delete keys in the hash table and how
+to track positions of keys inside the
+hash table for understanding the efficacy of our collision handling strategy. We will next learn
+about techniques for avoiding the
+clustering problem.
+ 
+>> In this lesson, we
+will discuss about more sophisticated policies for handling collisions
+in hash tables. Specifically, we will focus on quadratic probing
+and double hashing. Quadratic probing introduces
+a new way to handle collisions by using
+a quadratic function to determine the
+next probe position. Unlike linear probing, where steps are sequentially
+taken through the table, quadratic probing uses the
+formula K^2 for the Kth probe, jumping over significantly
+larger intervals. As we will see, this helps in reducing
+primary clustering, thereby improving
+the distribution of keys across the
+entire hash table. Let's look at an example. Let's say we want to insert 2, 2 mod 10 is 2, Slot 2 is empty, so we just place
+the key at Slot 2. Let's next try to insert 12. 12 mod 10 is also 2, but Slot 2 is not empty. Quadratic probing calculates
+new probe positions by adding square values of the iteration number
+to the original index, then taking modulo
+the table size. Here, the iteration
+number K is 1. So 2+K^2 is 2+1^2, which is 3. So we check Slot 3 and place the key
+there as it is empty. Let's next try to insert 22, 22 mod 10 is also 2, but Slot 2 is not empty. So we next probe the
+slot with Index 2+1^2. Slot 3 is also not empty. Now we next look
+at the slot with index 2+2^2 because the
+iteration number is 2. This is 16 mod 10, which is 6, so we place
+the key in Slot 6. Quadratic probing
+is different from linear probing in that
+instead of looking at Slot 4, we immediately jump to Slot 6. Let's next try to insert 32. We probe Slots 2, 3, and 6, all of them are occupied. So we next probe the
+slot with Index 2+3^2. This is 11 mod 10, which is 1. So we place the key in Slot 1. In this manner, quadratic
+probing spreads out the entries across the entire hash table
+more effectively, thereby eliminating the
+primary clustering problem. Here's how we implement
+quadratic probing in code. This function attempts to insert a new key or update an existing one by moving to the next available slot according to the quadratic
+probing sequence, ensuring that each
+collision moves further away from the last,
+reducing clustering. Here, the attempt counter is K, so we are adding K^2 to the
+index in each iteration. Unlike linear probing,
+quadratic probing spreads entries across the
+hash table more uniformly. This spread out distribution also facilitates
+faster searches, minimizing the number of
+probes required to find a key compared to dense
+clusters in linear probing. Although it reduces
+primary clustering, quadratic probing can still
+lead to secondary clustering. This occurs when different keys hash to the same initial index, follow the same probe
+sequence leading to potential performance
+issues similar to those seen with smaller clusters
+in linear probing. For example, keys 2, 12, 22, and 32 form a
+secondary cluster. Let's next look
+at a solution for this secondary
+clustering problem. Double hashing introduces
+a second hash function HASH2 to compute the probe step, creating a unique probe
+sequence for each key, thus greatly reducing the
+chance of second re-clustering. The probe sequence is determined
+by the formula HASH1 of key plus K into HASH2(KEY)
+mode table size. Here, HASH2 is a different
+hash function from HASH1. For instance, HASH2 can be 1
+plus KEY mod TABLE_SIZE-1. It is very important
+for HASH2 to not be the same as HASH1. If both the functions
+are the same, then the secondary
+hash function HASH2 does not provide a unique
+sequence for probing, which is the main advantage
+of double hashing. Let's revisit the same
+example of inserting keys 2, 12, 22, and 32. Let's say we want to insert 2, HASH1 is just 2 mod 10, which is 2, HASH2 is 1+2 mod 9, which is 1+2, which is 3. Since Slot 2 is empty, K is 0, and we don't
+really need HASH2 here. So we just place
+the key at Slot 2. Let's next try to insert 12. Here, HASH1 is again 2, but HASH2 is 1+12 mod 9, which reduces to 4. Here, the iteration
+number K is 1. The overall index is (2+1*4), which reduces to 6. In this way, double
+hashing differs from quadratic probing in that it calculates the probe sequence using another hash function. So we check Slot 6 and place the key there as it is empty. Let's next try to insert 22. Here, HASH1 is again 2. HASH2 is 1+22 mod 9, which reduces to 5. The iteration number K is 1, so the overall index is 2+1*5, which reduces to 7. So we check Slot 7 and place the key there
+as it is empty. Let's next try to insert 32. Here, HASH1 is again 2. HASH2 is 1+32 mod 9, which reduces to 6. Here again, the iteration
+number is only one. The overall index is 2+1*6, which reduces to 8. So we check Slot 8 and place the key there as it is empty. We note that all the
+iteration numbers are very small with double hashing
+unlike quadratic probing. In this way, double hashing
+alleviates the problem of secondary clustering
+by providing a unique probe
+broth for each key. It reduces the need for
+lengthy probe sequences, unlike quadratic
+probing and thereby improves efficiency of
+hash table operations. In this lesson, we examined two advanced collision
+handling policies, quadratic probing,
+and double hashing. Quadratic probing helps spread out clusters over
+larger intervals, and double hashing almost completely eliminates clustering by using a unique probe
+sequence for each key. Both collision handling policies enhance the performance of hash table operations by
+avoiding long probe sequences.
+ 
+>> In this module, we learned about
+the importance of hash tables in indexing
+data for answering queries. We discussed about indexing
+containers in C++, std map, and std unordered map. We then covered the
+fundamentals of hash tables, including their structure, the importance of hash functions, and
+collision handling. We then focused on improving the efficiency of hash
+table operations, but reducing the need for really lengthy probe
+sequences via double hashing.

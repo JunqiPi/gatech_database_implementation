@@ -1,0 +1,410 @@
+In this module, we will
+dive into query execution, focusing on the
+techniques that allow a database to run a query using the available
+access methods. We will start by
+discussing about how operators are the
+fundamental building blocks of query execution. We will go over
+the scan operator, which loads all the on
+disk pages of a table into memory using the buffer manager
+during query execution. Next, we will discuss about abstract base class
+in C plus plus, which we will use to create a shared interface for
+all the operators. We will then learn
+about predicates, which are conditions used for filtering couples
+during query execution. Finally, we will cover
+the select operator, which operates on top of the scan operator to filter
+tuples using predicates.
+
+>> In this lesson, we will learn about
+how to execute queries over a table
+in a modular way. So far, we have been dealing
+with hard-coded queries, which means our query
+logic is deeply embedded with the storage
+and index retrieval process. For example, the scan table to build index function builds an index and the select group by sum function performs a
+range query using the index, grouping and summing data that falls within
+a specified range. Changing this hard
+coded query requires a deep understanding of
+the entire database, increasing the complexity and
+risk of introducing bugs. Also, this tight coupling
+makes it challenging to update or optimize the
+rest of the database, since any changes could
+impact the query's accuracy. Moving forward,
+let's shift towards a more modular approach
+using an operator framework. In this framework, each operator handles a specific aspect
+of query processing, such as scanning or
+aggregating data. The benefits of this
+approach are twofold. First, flexibility. Operators can be combined in various configurations to
+support complex queries. Second, isolation. Changes made to one operator do not impact other operators, simplifying debugging and
+subsequent optimizations. You can think of
+operators as Lego Blocks. Each operator acts as a fundamental unit
+of query execution. These operators can
+be connected in numerous configurations to
+build complex query pipelines. Each operator takes one
+or more tables as input. The input can come from a physical table stored
+in the database, or it can be the output
+table of another operator. After processing
+its input table, an operator outputs a new table, which can then be fed
+to another operator, creating a chain of
+relational operators. The composability
+of these operators allows database developers to construct complex queries from simple reusable components. For example, a select
+operator might filter tuples based on a
+specific condition with the output table serving
+as the input table for a join operator that combines two tables that satisfy
+some condition. Here is another illustrative
+query pipeline. We could have tuples filtered
+by a select operator and then aggregated by a group by operator to
+summarize the data. Operator based modular
+query execution offers several benefits. First, flexibility. Users can compose
+operators to run different queries without altering the
+individual operator. Second, modularity. Each operator encapsulates a specific data
+manipulation functionality, which simplifies the overall query exclusion architecture. Third, reusability. By implementing common operators once and reusing them
+across different queries, we reduce redundancy and
+minimize the chance of bugs. In this lesson, we explore
+the transition from hard-coded query execution to a more modular approach
+using operators. We discussed how
+hard-coded queries are tightly coupled with
+the systems storage and retrieval logic, making them inflexible and
+difficult to maintain. We then introduced an
+operator framework with greater flexibility
+and isolation.
+
+>> In this lesson, we
+will discuss about the abstract operator
+class that serves as the foundation of the
+operator framework in the query execution engine. We will then discuss about
+the scan operator class which is derived from this
+abstract operator class. The operator class acts
+as an abstract base class defining the common interface for all the operators in
+our execution engine. This base class enforces a standard for
+opening, processing, and closing tables, ensuring consistency across all
+the relational operators. Each method in the
+operator class plays a critical role
+in data handling. Open initializes the operator, setting up the necessary state and resources for
+data retrieval. Next, progresses
+to the next tuple, loading it for processing, and returns true if a
+tuple is available. Get output returns the fields of the currently
+processed tuple. Close, cleans up resources,
+and finalizes operations, ensuring a clean slate after
+the operator is executed. Let's next look at how these
+methods are implemented in the scan operator that is derived from this
+abstract operator class. The scan operator retrieves tuples from tables
+stored on disk. It works with the buffer manager to handle the actual
+page retrieval. Here is the code for
+the scan operator. This class maintains
+the state of the current page and tuple within that
+page being processed. It works with the
+buffer manager to handle the actual
+page retrieval. It provides a structured
+way to navigate over pages in a table and the tuples stored
+within those pages. The open method in
+the scan operator initializes the data scanning
+process from disk pages. It resets the page index and the slot index and begins
+the tuple-loading process, preparing the operator
+to fetch data. The next method is responsible for navigating through the data. This method checks for more pages and loads the next
+tuple if it is available, facilitating sequential
+data access. The load next tuple
+function retrieves the next tuple from
+the current page using the buffer manager. When all the tuples in the current page
+have been processed, it advances to the next page. When all the pages
+have been scanned, it clears the current tuple
+marking the end of the scan. Upon a successful next call, the Get output function retrieves the current
+tuples fields. This method returns the
+fields of the loaded tuple, providing data for
+further processing by the next operator or as the
+output table of the query, depending on the query plan. Finally, the closed method
+ensures proper cleanup. This operation clears
+the current page and tuple pointers
+releasing resources like memory and leaving the
+system in a clean slate. In this lesson, we went through the common
+interface provided by the abstract operator class and how the scan operator
+implements this interface.
+
+>> In this lesson, we will learn about the abstract base class in C ++ and more generally in object-oriented
+programming languages. We will then discuss
+about derived classes that inherit from the
+abstract base class. Lastly, we will cover how
+unary and binary operators in the query execution engine are derived from the
+abstract operator class. An abstract base class serves as a common interface for
+other derived classes. It can contain one or more
+pure virtual functions that have no implementation. These functions are specified
+using the syntax equal to zero at the end of the
+function declaration. Here's an example. Consider the shape
+class which serves as an abstract base class for
+shapes like circle and square. It contains variables
+like X and Y, which determine the location of the shape and color which
+are common to all shapes. It also has a pure
+virtual draw function that must be implemented in
+all the derived classes. It also contains a
+more function that is inherited by all
+the derived classes, encapsulating common
+behavior in the base class. This enhances code reuse and maintains consistency across
+different types of shapes. A derived class is a class that inherits variables
+and methods from the base class and can add
+or override functionalities. Here, the circle class is derived from the
+abstract shape class. The circle class has an
+additional variable called radius besides the X and Y variables
+from the shape class. The circle class overrides
+the draw function and has an implementation that is appropriate for
+drawing a circle. Next, the square class is also derived from the
+abstract shape class. The square class has an
+additional variable called side length besides the
+variables from the shape class. The square class overrides
+the draw function and has an implementation that
+is appropriate for a square. In this way, each
+derived class has its own draw function that is
+appropriate for that shape. When we talk about
+derived classes, there are two key ideas. The first idea is inheritance. Inheritance allows
+derived classes to utilize and extend the
+functionalities of a base class. The second idea is polymorphism. Polymorphism enables
+these classes to override the base class methods with specific implementations
+that vary between the different
+derived classes. The override keyword is
+used in C ++ to explicitly indicate that a method is meant to be overridden
+from the base class. Understanding the origin
+of these terms can provide deeper insights into
+their conceptual meaning. Inheritance comes from the
+Anglo-French word inheritor, which means making
+someone an heir, capturing how variables
+and methods are passed down from a base class
+to its derived classes. Abstract comes from the
+Latin word abstractus, indicating something that
+is drawn away or detached. It captures how an abstract
+base class is detached from the concrete-derived
+class implementations. Let's next look at an
+example based on shapes. Consider an array
+of shape pointers, each pointing to different
+derived class objects like circle and square. A base class pointer can point
+to a derived class object. Now, when we call draw, we will invoke
+different behaviors depending on the object
+type at runtime, depending on whether
+the object is a circle or whether
+it's a square. This is known as polymorphism. Polymorphism allows
+the same draw function to have different behaviors
+based on the object type. Polymorphism comes from the
+Greek terms poly and morph, meaning many shapes, reflecting the ability of the draw function
+to have many behaviors. Let's now apply these
+ideas to operators. Unary operator and
+binary operator classes are derived from the
+abstract operator class. These derived
+classes are tailored to handle specific
+types of operators, applying the ideas
+of inheritance and polymorphism in
+query execution. The unitary operator
+is designed for operators that require
+only one input table, such as filtering or
+projecting tuples. It has only one input
+operator called input. In contrast, the binary
+operator is designed for operators that require
+two input tables, such as the join operator
+that joins two tables. The binary operator class has two input operator variables, input left, and input right. To recap, in this lesson, we explored the role of
+abstract base classes in establishing a blueprint
+for other classes. It provides a
+structured approach to inheritance and polymorphism in object-oriented programming. We then discussed about the unary and binary
+operator classes that apply this concept in a practical way for
+query execution.
+
+>> In this lesson,
+we will learn about the select operator and how it uses a predicate to determine which tuples in a table
+satisfy a specific condition. We will then learn about
+how we can support more complex predicates in C++. The select operator
+uses a predicate to determine which tuples in a table satisfy a
+specific condition. For instance, in this query, Select* from employees where salary is greater than 1,000, the condition salary greater
+than 1,000 is a predicate. This predicate evaluates
+each tuple to either true or false based on the
+tuples salary attribute, effectively filtering the data. Predicate consists
+of three components that define how the comparisons are made between the fields. First, the left field and the right field or the
+fields being compared, which are the tuple attributes or constants involved
+in the comparison. The predicate type specifies the nature of the comparison, such as greater than, less than, equals, and so forth. The predicate
+structure allows for a dynamic comparison based on the query condition.
+Let's look at the code. The predicate class consists of two unique pointers to
+the fields being compared. It also has a predicate
+type enum variable that specifies the nature
+of the comparison. The predicate type enum is crucial for defining the types of operations that
+can be performed. Each enum member represents a specific comparison operation, guiding the predicate
+evaluation process to use the correct logic. The inner members include
+operations like equals, not equal, greater than, and less than and others. These members dictate how the two values must be compared. To evaluate a predicate, this checkPredicate
+function applies a type specific comparison. For instance, if both
+the fields are integers, the comparison is
+straightforward, numerical comparison based on
+the defined predicate type, such as greater
+than or less than. The actual comparison
+logic is abstracted into the compared function which allows for type-safe
+comparisons. We will use a template function
+for type-safe comparison. This function supports
+any data type that can be compared, allowing predicates to
+work with integers, floating point
+numbers, strings, etc, ensuring that the
+comparisons are both safe and correct according
+to the data type. This template-based approach
+avoids code duplication and thereby increases
+the likelihood of the correctness
+of the comparisons. This is because while duplicating code for
+different types, we can introduce bugs while
+copying and editing the code. Let's see a practical example to understand how a
+predicate functions. This snippet initializes two
+fields with integer values, one with a value 10, and another one with a value 20. It sets up a predicate
+to compare these values. In particular, if 10
+is greater than 20. Clearly, this predicate
+will evaluate to false. This simple check underlines
+the predicate's role in filtering data based
+on specified conditions. Instead of a simple predicate that compares two constants, it is more useful if we
+have a predicate class where a field can refer
+to a tuple's attribute. Let's next add support for more complex and
+useful predicates. Currently, our simple
+predicate class only supports constant
+fields as operants. The constant fields or direct fields in that
+the predicate does not dynamically adapt based on the data of the tuple
+it is evaluated on. This means that each condition is defined at compared time. To address this limitation, in the next version
+of [inaudible] DB, we will introduce support for complex predicates
+that can evaluate conditions dynamically using
+the tuple's data at runtime. The complex predicate class has a separate operant struct. Operants can either hold direct values or refer indirectly to columns
+within a tuple. The updated class is shown here. A direct operant directly
+takes a constant value, so it is a static data setting. An indirect operant
+takes the index of the column within the tuple the predicate is
+being evaluated on. So direct operants are static and indirect
+operans are dynamic. The checkPredicate method for complex predicates
+checks conditions using fields that are
+embedded directly in the predicate or referenced by their index within the tuple. It retrieves the
+appropriate fields from the tuple for comparison, whether there are direct
+values stored within the field or pointers to
+fields within a tuple. The indirect approach
+allows predicates to dynamically adapt to the tuples the
+predicate is evaluated. Here's an example where the
+predicate conditions are evaluated based on the positions of fields within a tuple. It is comparing the fields
+at index zero and Index one in the tuple fields vector.
+Let's look at the code. It illustrates the usage of indirect references
+in predicates. We have a vector
+of field objects where each field is dynamically allocated using SDD make unique and represents
+data in a tuple. Two integer fields with values 10 and 20 are added to
+this tuple fields vector. We then create a
+predicate object with indirect references
+to these fields, specifying that the predicate should compare the values at Indices 0 and 1 within
+this tuple fields vector. The comparison is defined by the predicate type
+GT or greater than, which directs the predicate
+to check if the field at Index 0 is greater than
+the field at Index 1. The result of this comparison is computed and printed as false. In addition to
+indirect referencing, the complex predicate class also supports direct
+field comparisons. We can predefine the values
+within the predicate like 10 and 20. Here's the code. We first construct two
+field objects with values 10 and 20 respectively. These field objects
+are directly used to create operants
+using move semantics, which transfers ownership of
+the fields to the operants. The predicate is set to perform
+a greater than comparison between the directly
+provided field values. The check predicate
+method is invoked without parameters because the tuples are directly embedded
+in the predicate, not relying on
+external tuple data. The outcome of the
+predicate evaluation is again false as we are checking if the constant 10 is greater than
+the constant 20. Overall, the complex
+predicate class improves the expressiveness
+and flexibility of predicates during
+query execution. It supports both direct
+and indirect referencing, which allows for dynamic
+evaluation of query conditions. It is easy to incorporate
+different types of comparisons by simply
+changing the predicate type. And lastly, it performs type specific comparisons to
+avoid runtime errors. In this lesson, we
+discussed about predicates within the context
+of executing selecqueries. Starting from simple predicates, we extended the idea to complex predicates that are
+more expressive and flexible.
+
+>> In this lesson,
+we will learn about the all important
+select operator that is used to filter tuples
+based on some condition. We will also discuss about
+the differences between deep and shallow copying
+of objects in C++. The Set operator uses
+a predicate to filter tuples from its input stream based on a specified condition. For example, this predicate
+compares the first field of the tuple against
+the constant 10. The field index
+starts from zero. So Tuple Index 0 refers
+to the first field, Tuple Index 1 refers
+to the second field, and so on. Let's
+look at the code. The select operator inherits from the unary operator class, allowing it to
+process the output of a single input operator. It contains a predicate variable
+to evaluate each tuple. A Boolean has next
+variable to track the availability
+of the next tuple that satisfies the predicate. And a current output
+vector to store the fields of that tuple that has satisfied
+the predicate. So current output is empty
+if has next is false, and it only has feels
+if has next is true. The next method of the select
+operator is responsible for fetching the next tuple that
+satisfies the predicate. This method itertes over
+the incoming tuples, checking each against
+the predicate. If the tuple satisfies
+the predicate, then this function duplicates the tuples fields into the
+current output vector, ensuring that the tuple is retained for further processing. The oil loop continues until all the tuples from the input
+operator are processed. Finally, it sets has next
+to faults and clears the current output vector when no more tuples are
+available for processing. The open and close
+methods prepare and clean up the
+operator respectively. Open initializes
+the input operator and resets internal state. Close ensures that all
+resources are properly released like the
+memory associated with the fields in the
+current output vector. The getOutput function returns the fields of the
+current valid tuple. This method creates a deep
+copy of the tuple fields, ensuring that the data passed
+to subsequent operators is independent of
+the original data managed by the select operator. So what is a deep copy? Let's next discuss about
+copying objects in C++. A deep copy of a field duplicates everything directly reachable
+from the field, including the data variable, which points to memory dynamically
+allocated on the heap. The copy of the field and the original field do not share pointers to the same data. In contrast, a shallow
+copy of a field merely copies all the memory
+variables, including pointers. It does not create copies of dynamically allocated
+memory pointed to by the original field. Let's look at an example. The deep class stores a pointer to a character
+array called data. The copy constructor
+allocates new memory for data and copies the content from the original objects data
+to the new memory location, ensuring that each deep object has its own copy of the data. An instance of deep named virginal is created
+with a string hello. Another instance named copy is created by copying virginal. Due to the copy constructor, this copy object has its own
+separate memory for data. Let's modify the
+first character of copied.data from H to J. This change does not affect virginal.data because the
+data was deeply copied. This is because the
+deeply copied string and the virginal string are separate from each other
+in the memory heap. In contrast with a shallow copy, altering the copied string
+changes the original string as well as they both share
+the same memory location. The copy constructor of the shallow class only
+performs a shallow copy. When a new shallow object is constructed from
+an existing one, the data pointer of the new
+object is simply set to point to the same character
+array as the virginal object. So copy.data points to the same memory location
+as virginal.data. When we change the first
+character of the string pointed to by
+copied.data from H to J, this modification also changes the content of
+virginal dot data. This shallow copying can lead to memory related bugs in
+our query execution engine. The duplicate fields
+function does deep copying. It creates an independent
+copy of the fields so that they can safely be consumed by the next
+relational operator. This approach ensures that each tuple being processed
+by an operator is isolated from changes being done by another operator in
+the database system. Let's next look at setting up a select operator in a query. This example, query
+first configures a scan operator to read tuples from disk using
+the buffer manager. It then sets up a select
+operator to filter the scan tuples based on the condition that the
+first fields value is greater than two. While processing
+the scan tuples, the select operator evaluates the predicate over each tuple. Tuples that meet the condition
+are printed for the user. Similar to Lego Blocks, we can compose operators like the scan and select operators in a sequence to create
+complex queries. More broadly in
+computer systems, composability enables combining simple
+independent components to create more complex
+and functional systems. To recap, in this lesson, we explore the select operator from its functions to its
+practical usage in a query. We discussed about how it
+filters tuples based on dynamic conditions and performs deep copying to
+avoid memory pugs. These relational
+operators exemplify the power of composibility
+in database systems.
+
+In this module, we
+explored how we are using relational operators to
+execute queries in Bus DB. We discussed about
+the scan operator and how it interacts with the buffer manager
+to load pages of the table from disk
+to memory as needed. We learned about abstract
+base class in C plus plus, and how inheritance
+and polymorphism improve the modularity
+and code reuse in our operator framework. We then covered predicates for filtering couples
+during query execution. Lastly, we explode
+the select operator, which is often the parent of a scan operator in the
+query execution plan, and which uses the predicate
+for filtering tuples.

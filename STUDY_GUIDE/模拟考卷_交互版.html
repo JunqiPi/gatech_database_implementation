@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS 6422 Midterm — Interactive Mock Exam (自测考卷)</title>
+<style>
+  :root{ --bg:#f6f7f9; --card:#fff; --line:#e3e6ea; --ink:#1c2430; --muted:#6b7480;
+         --blue:#2563eb; --green:#16a34a; --red:#dc2626; --amber:#d97706; }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+       background:var(--bg); color:var(--ink); margin:0; line-height:1.55;}
+  .wrap{max-width:880px; margin:0 auto; padding:24px 16px 120px;}
+  h1{font-size:22px; margin:0 0 4px;}
+  .sub{color:var(--muted); font-size:13px; margin-bottom:16px;}
+  .bar{position:sticky; top:0; z-index:10; background:rgba(246,247,249,.95); backdrop-filter:blur(4px);
+       border-bottom:1px solid var(--line); padding:10px 0; margin-bottom:8px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+  .pill{font-size:12px; color:var(--muted);}
+  #result{display:none; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin:8px 0 18px;}
+  #result.show{display:block;}
+  .score{font-size:30px; font-weight:700;}
+  .score small{font-size:14px; color:var(--muted); font-weight:400;}
+  .break{margin-top:10px; display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px;}
+  .break div{background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:13px;}
+  .q{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin:12px 0;}
+  .q .tag{display:inline-block; font-size:11px; font-weight:700; color:#fff; background:var(--blue);
+          border-radius:6px; padding:2px 8px; margin-bottom:8px;}
+  .q .tag.book{background:#7c3aed;} .q .tag.mod{background:#2563eb;} .q .tag.pa{background:#0891b2;} .q .tag.paper{background:#be123c;} .q .tag.calc{background:#d97706;}
+  .q .qt{font-weight:600; margin-bottom:10px;}
+  .q .qt .num{color:var(--muted); font-weight:700; margin-right:6px;}
+  label.opt{display:block; border:1px solid var(--line); border-radius:8px; padding:9px 12px; margin:6px 0; cursor:pointer; font-size:14.5px; transition:.12s;}
+  label.opt:hover{border-color:var(--blue); background:#f0f5ff;}
+  label.opt input{margin-right:9px;}
+  label.opt.correct{border-color:var(--green); background:#ecfdf3;}
+  label.opt.wrong{border-color:var(--red); background:#fef2f2;}
+  .exp{display:none; margin-top:10px; padding:10px 12px; background:#f8fafc; border-left:3px solid var(--blue); border-radius:0 8px 8px 0; font-size:13.5px;}
+  .exp.show{display:block;}
+  .verdict{font-weight:700; margin-right:6px;}
+  .v-ok{color:var(--green);} .v-no{color:var(--red);}
+  button{font-family:inherit; font-size:15px; font-weight:600; border:0; border-radius:10px; padding:11px 20px; cursor:pointer;}
+  #submitBtn{background:var(--blue); color:#fff;}
+  #resetBtn{background:#eceff3; color:var(--ink);}
+  .footbar{position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
+           padding:12px 16px; display:flex; gap:12px; justify-content:center; align-items:center; flex-wrap:wrap;}
+  .footbar .pill{font-size:13px;}
+  code{background:#eef1f5; padding:1px 5px; border-radius:5px; font-size:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>CS 6422 Database System Implementation — Midterm Mock Exam</h1>
+  <div class="sub">自测模拟卷 · 61 题 · 覆盖 ch1/2/12/13(20) + Module 1–8(21) + PA1/2(10) + Paper 1–4(10) · 选完点底部「提交并出分」自动评分。<br>
+  题目与选项为英文(模拟真实考试)，评分后每题给出中英文解析。这是原创模拟题，非真题复制。</div>
+
+  <div class="bar">
+    <span class="pill" id="progress">已作答 0 / 53</span>
+    <span class="pill" style="color:#7c3aed">■ 课本 Book</span>
+    <span class="pill" style="color:#2563eb">■ 模块 Module</span>
+    <span class="pill" style="color:#0891b2">■ 作业 PA</span>
+    <span class="pill" style="color:#be123c">■ 论文 Paper</span>
+  </div>
+
+  <div id="result"></div>
+  <div id="quiz"></div>
+</div>
+
+<div class="footbar">
+  <span class="pill" id="progress2">已作答 0 / 53</span>
+  <button id="submitBtn">提交并出分 / Submit &amp; Score</button>
+  <button id="resetBtn">重做 / Reset</button>
+</div>
+
+<script>
+const QUESTIONS = [
+ // ===== ch1 Introduction =====
+ {n:1,tag:"ch1",cat:"book",q:"Which of the following is NOT one of the three levels of data abstraction in a DBMS?",
+  opts:["Physical level","Logical level","View level","Network level"],ans:3,
+  exp:"✅ D. 三层抽象是 physical / logical / view。'Network level' 不是抽象层(network model 是另一种数据模型)。"},
+ {n:2,tag:"ch1",cat:"book",q:"Which best describes the difference between a schema and an instance?",
+  opts:["The schema is the data; the instance is the structure","The schema is the structure (like a variable's type); the instance is the content at a point in time (like its value)","They are synonyms","An instance never changes once created"],ans:1,
+  exp:"✅ B. schema=结构(像变量的类型,很少变);instance=某时刻的实际数据(像变量的值,时时变)。"},
+ {n:3,tag:"ch1",cat:"book",q:"Which statement about DDL and DML is NOT correct?",
+  opts:["DDL defines the database schema (e.g., create table)","DML is used to access and update the data","A declarative DML specifies what data is needed without how to get it","SQL is a procedural DML that specifies step-by-step retrieval"],ans:3,
+  exp:"✅ D 是错的。SQL 是 declarative/nonprocedural(声明式,只说要什么)。DDL 定结构、DML 增删改查。"},
+ {n:4,tag:"ch1",cat:"book",q:"Which is NOT one of the three functional components of a database engine?",
+  opts:["Storage manager","Query processor","Transaction manager","Network load balancer"],ans:3,
+  exp:"✅ D. 引擎三大件 = storage manager / query processor / transaction management。负载均衡器不是。"},
+
+ // ===== ch2 Relational Model =====
+ {n:5,tag:"ch2",cat:"book",q:"In relational algebra, which operator corresponds to SQL's WHERE clause (filtering rows)?",
+  opts:["Π (projection)","σ (selection)","× (Cartesian product)","ρ (rename)"],ans:1,
+  exp:"✅ B. σ(选择)挑行=WHERE。Π(投影)挑列=SELECT 列。这是最经典的混淆点。"},
+ {n:6,tag:"ch2",cat:"book",q:"Which statement about keys is NOT correct?",
+  opts:["A superkey uniquely identifies a tuple but may contain redundant attributes","A candidate key is a minimal superkey","A relation can have at most one candidate key","A primary key is one chosen candidate key"],ans:2,
+  exp:"✅ C 是错的。一个关系可以有多个候选键(candidate key),从中选一个当 primary key。"},
+ {n:7,tag:"ch2",cat:"book",q:"What does the projection operator Π do in relational algebra?",
+  opts:["Selects rows matching a predicate","Selects specified columns and removes duplicate rows","Combines two relations by a join condition","Renames a relation"],ans:1,
+  exp:"✅ B. Π 投影=挑列并去重(关系是集合,无重复行)。"},
+ {n:8,tag:"ch2",cat:"book",q:"Which statement about joins in relational algebra is correct?",
+  opts:["A join is the Cartesian product with no condition","Applying σ with a matching condition over a Cartesian product (A × B) yields a join","A join always produces more rows than either input","A natural join requires no common attributes"],ans:1,
+  exp:"✅ B. σ_{A.k=B.k}(A × B) = A ⋈ B。连接 = 笛卡尔积 + 筛选条件。"},
+
+ // ===== ch12 Physical Storage =====
+ {n:9,tag:"ch12",cat:"book",q:"Disk access time for a magnetic disk is primarily composed of:",
+  opts:["Seek time + rotational latency + transfer time","Only transfer time","CPU time + cache time","Compilation time + parsing time"],ans:0,
+  exp:"✅ A. 访问时间 = 寻道(seek) + 旋转延迟(rotational latency) + 传输。"},
+ {n:10,tag:"ch12",cat:"book",q:"Which statement about magnetic disks is NOT correct?",
+  opts:["A sector is the smallest unit that can be read or written","A cylinder is the set of tracks at the same arm position across all platters","Random access is faster than sequential access","Average seek time is about half the worst-case seek time"],ans:2,
+  exp:"✅ C 是错的。顺序访问(只第一次寻道)远快于随机访问(每次都寻道)。"},
+ {n:11,tag:"ch12",cat:"calc",q:"[Calc] HDD random-read latency ≈ 10 ms; SSD ≈ 100 µs. SSD random-read IOPS is approximately how many times the HDD's?",
+  opts:["≈10×","≈100×","≈1,000×","≈10,000×"],ans:1,
+  exp:"✅ B. IOPS ∝ 1/延迟。10 ms ÷ 100 µs = 10000µs ÷ 100µs = 100×。注意 1ms=1000µs。"},
+ {n:12,tag:"ch12",cat:"book",q:"Which RAID level uses mirroring (a full duplicate copy) and is preferred for many small random writes (e.g., a log)?",
+  opts:["RAID 0","RAID 1","RAID 5","RAID 6"],ans:1,
+  exp:"✅ B. RAID 1=镜像(整盘复制),写性能好。RAID 0=纯条带不冗余;5/6=分布式校验。"},
+ {n:13,tag:"ch12",cat:"book",q:"Which statement about flash/SSD storage is NOT correct?",
+  opts:["Random and sequential read speeds are similar","A page must be erased before it can be rewritten","Wear leveling spreads writes to avoid wearing out blocks","SSDs contain moving mechanical read/write heads like HDDs"],ans:3,
+  exp:"✅ D 是错的。SSD 无机械部件(所以随机≈顺序);写前要擦除;用 wear leveling 防磨损。"},
+ {n:14,tag:"ch12",cat:"book",q:"The 'elevator algorithm' in disk-arm scheduling is used to:",
+  opts:["Encrypt disk blocks","Reorder block requests to minimize disk-arm movement","Compress pages before writing","Implement a RAID level"],ans:1,
+  exp:"✅ B. 电梯算法=重排磁盘请求,减少磁臂来回移动。"},
+
+ // ===== ch13 Storage Structures =====
+ {n:15,tag:"ch13",cat:"book",q:"Which statement about the slotted-page structure is NOT correct?",
+  opts:["The header records the number of entries and the end of free space","Pointers point directly to the record's bytes, not to a header slot entry","Records can be moved within the page during compaction","The slot directory stores each record's location and size"],ans:1,
+  exp:"✅ B 是错的。指针应指向页头里的 slot 条目(间接层),不直接指记录字节——这样记录移动时引用仍有效。"},
+ {n:16,tag:"ch13",cat:"book",q:"How are variable-length attributes typically represented within a record?",
+  opts:["As a fixed-size (offset, length) pair, with the actual data stored after the fixed-length attributes","Inline at their maximum possible size","In a completely separate database file always","Variable-length attributes are not supported"],ans:0,
+  exp:"✅ A. 变长属性用固定大小的 (offset, length) 表示,数据放在定长属性之后;null 用位图。"},
+ {n:17,tag:"ch13",cat:"book",q:"In a heap file organization:",
+  opts:["Records are stored sorted by a search key","A record can be placed anywhere in the file where there is free space","A hash function determines the block for each record","Records of several relations are interleaved by design"],ans:1,
+  exp:"✅ B. heap=哪有空放哪(最随意)。sorted=sequential;hash=hashing;interleaved=multitable clustering。"},
+ {n:18,tag:"ch13",cat:"book",q:"What is the main purpose of a free-space map (FSM)?",
+  opts:["To reduce in-page fragmentation directly","To quickly find a page with enough free space for an insert without scanning every page","To store the query execution plan","It is just another name for the data dictionary"],ans:1,
+  exp:"✅ B. FSM 加速'找哪页有空'(插入选址);它不解决页内碎片(那是 compaction 的事)。"},
+ {n:19,tag:"ch13",cat:"book",q:"The data dictionary (system catalog) primarily stores:",
+  opts:["The actual tuples of user tables","Metadata: relation names, attribute types/lengths, constraints, and how relations are stored","The in-memory buffer pool contents","The write-ahead transaction log"],ans:1,
+  exp:"✅ B. 数据字典存'元数据'(关于数据的数据):有哪些表、列类型、约束、怎么存。"},
+ {n:20,tag:"ch13",cat:"book",q:"For a one-time sequential scan of a large relation, which buffer-replacement strategy is most appropriate?",
+  opts:["LRU","MRU / toss-immediate","Pin all scanned pages permanently","Pure random replacement"],ans:1,
+  exp:"✅ B. 顺序扫描的页扫完就不用,该 toss-immediate/MRU;用 LRU 反而把热页挤出去(flooding)。"},
+
+ // ===== M1-M2 Intro / BuzzDB / ACID =====
+ {n:21,tag:"M1",cat:"mod",q:"Which is NOT a flat-file limitation that the relational model addresses?",
+  opts:["Data redundancy and update anomalies","Slow sequential-scan lookups","Declarative SQL queries without writing code","Uncoordinated concurrent updates overwriting each other"],ans:2,
+  exp:"✅ C. 声明式 SQL 是关系模型的优点,不是 flat-file 的问题。其余都是 flat-file 的局限。"},
+ {n:22,tag:"M2",cat:"mod",q:"A funds transfer crashes after the debit but before the credit. Which two ACID properties ensure no money is lost?",
+  opts:["Atomicity and Durability","Consistency and Isolation","Isolation and Durability","Atomicity and Isolation"],ans:0,
+  exp:"✅ A. 原子性回滚那半截扣款(全有或全无);持久性保证日志(WAL)已落盘,崩溃后能据此恢复。"},
+ {n:23,tag:"M2",cat:"mod",q:"Which statement about OLTP vs OLAP is NOT correct?",
+  opts:["OLTP emphasizes short, latency-sensitive point reads/writes","OLAP involves long, scan-heavy analytical queries","OLAP systems typically use row stores for best performance","Data warehouses are OLAP systems"],ans:2,
+  exp:"✅ C 是错的。OLAP(分析)适合 column store(列存);行存适合 OLTP。"},
+ {n:24,tag:"M2",cat:"mod",q:"Why is C++ static typing relevant to a database engine's performance?",
+  opts:["A variable's type can change at runtime if profitable","Types are known at compile time, enabling code specialization (e.g., fixed-width tuple layouts)","Static typing prevents the use of templates/generics","Dynamic typing is inherently safer"],ans:1,
+  exp:"✅ B. 静态类型编译期定类型→能做代码特化(定长 tuple 布局),更快。"},
+ {n:25,tag:"M2",cat:"mod",q:"In early BuzzDB, which C++ containers store the table and the index, respectively?",
+  opts:["std::map (table) and std::vector (index)","std::vector (table) and std::map (index)","std::set and std::list","std::array and std::queue"],ans:1,
+  exp:"✅ B. vector 存所有 tuple(=表);map 当索引(key→值,有序)。"},
+
+ // ===== M3-M4 Storage / Serialization / Slotted =====
+ {n:26,tag:"M3",cat:"mod",q:"Which statement about serialization is NOT correct?",
+  opts:["It linearizes in-memory data into a flat byte stream","Raw pointers are meaningful on disk and should be stored as-is","For variable-length fields, the length must be written so the reader knows how much to read","Deserialization reconstructs in-memory objects from disk bytes"],ans:1,
+  exp:"✅ B 是错的。指针只在本次运行有效,存到磁盘毫无意义;必须线性化成值(长度+字节)。"},
+ {n:27,tag:"M3",cat:"mod",q:"Which is NOT a raw-pointer problem that smart pointers (unique_ptr) help solve?",
+  opts:["Memory leaks","Dangling pointers","Lack of automatic garbage collection like Java","Double free"],ans:2,
+  exp:"✅ C. 裸指针四坑=泄漏/悬空/双重释放/所有权不清。C++ 没有 GC(智能指针靠 RAII,不是 GC)。"},
+ {n:28,tag:"M3",cat:"mod",q:"Which statement about deep copy vs shallow copy is correct?",
+  opts:["Deep copy shares the same underlying buffer to save memory","Deep copy makes an independent copy (safer, uses more memory); sharing a buffer is shallow copy","Shallow copy is always safer than deep copy","They are functionally identical"],ans:1,
+  exp:"✅ B. 深拷贝=独立一份(安全、费内存);共享缓冲=浅拷贝(危险)。"},
+ {n:29,tag:"M3",cat:"mod",q:"Which statement about reinterpret_cast is NOT correct?",
+  opts:["It reinterprets the bits of one type as another","It is a portable and safe mechanism for converting any pointer to any other","It is used for low-level byte access (e.g., a char buffer as a struct)","It makes a dangerous conversion explicit"],ans:1,
+  exp:"✅ B 是错的。reinterpret_cast 是危险的位级重解释,平台相关、不安全。"},
+ {n:30,tag:"M3",cat:"mod",q:"A function returns a reference to a local variable allocated on the stack. Using that reference after the function returns:",
+  opts:["Is safe; the variable persists","Leads to a dangling reference (undefined behavior), since the stack object is destroyed on return","Automatically moves the variable to the heap","Is handled by garbage collection"],ans:1,
+  exp:"✅ B. 栈对象函数返回即销毁,返回它的引用=悬空。要持久应放堆(配智能指针)。"},
+
+ // ===== M5-M6 Buffer / Concurrency =====
+ {n:31,tag:"M5",cat:"mod",q:"In the 2Q replacement policy, on eviction the manager evicts from:",
+  opts:["The LRU queue first","The FIFO queue first (read-once pages), protecting hot pages in the LRU queue","A randomly chosen queue","The queue with the largest pages"],ans:1,
+  exp:"✅ B. 2Q 先驱逐 FIFO 队列(扫一次的冷页),保护 LRU 队列里的热页 → 抗顺序扫描 flooding。"},
+ {n:32,tag:"M5",cat:"mod",q:"Marking a virtual function as `= 0` (pure virtual) means:",
+  opts:["It enables compile-time binding and removes vtable overhead","The class becomes abstract (cannot be instantiated); calls still dispatch at runtime via the vtable","The function body does nothing","The class becomes final and cannot be subclassed"],ans:1,
+  exp:"✅ B. =0 是纯虚函数→类变抽象(不能实例化),调用仍走 vtable 运行时分派(开销还在)。"},
+ {n:33,tag:"M5",cat:"mod",q:"Which statement about a buffer frame's pin count and latch is correct?",
+  opts:["Holding only the latch (pin count = 0) is enough to prevent eviction","A nonzero pin count prevents eviction; a latch prevents concurrent modification of the bytes","Pin count and latch are the same mechanism","A page is evictable only when its pin count is greater than 0"],ans:1,
+  exp:"✅ B. pin 防驱逐(count=0 才可驱逐);latch 防并发改字节。两者职责不同。"},
+ {n:34,tag:"M6",cat:"mod",q:"Why is `balance += 10` unsafe when executed by multiple threads without synchronization?",
+  opts:["It is a single atomic instruction","It is actually load/add/store, which can interleave between threads and lose updates","It always throws an exception","The compiler removes it"],ans:1,
+  exp:"✅ B. += 是 load/add/store 三步,两线程交错会丢更新(race condition)。"},
+ {n:35,tag:"M6",cat:"mod",q:"Which statement about a std::mutex is NOT correct?",
+  opts:["It provides mutual exclusion for a critical section","It guarantees fairness (FIFO ordering) among all waiting threads","std::lock_guard (RAII) prevents missed unlocks on exceptional paths","Misusing its scope can cause deadlock or contention"],ans:1,
+  exp:"✅ B 是错的。mutex 只保证互斥(一次一个),不保证公平排队。"},
+ {n:36,tag:"M6",cat:"mod",q:"Which database configuration parameter is immutable (changing it requires a dump and reload)?",
+  opts:["buffer_pool_size","page_size","number of worker threads","log file location"],ans:1,
+  exp:"✅ B. page_size 不可变(影响磁盘布局,改它要 dump+reload);buffer_pool_size 可运行时调。"},
+
+ // ===== M7-M8 Hashing / Thread-safe =====
+ {n:37,tag:"M7",cat:"mod",q:"During an open-addressing hash-table search, encountering an empty slot means:",
+  opts:["The table is full","The key is absent (not in the table)","A collision has occurred","A rehash is required"],ans:1,
+  exp:"✅ B. 探测到空槽=key 不存在(若存在,它会被放在探测路径上某个非空槽)。"},
+ {n:38,tag:"M7",cat:"mod",q:"Which statement about double hashing is NOT correct?",
+  opts:["It uses a second hash function to compute the probe step size","hash2 should be identical to hash1 for consistency","It gives each key a unique probe sequence","It reduces secondary clustering"],ans:1,
+  exp:"✅ B 是错的。hash2 必须不同于 hash1,否则退化成相同探测序列、失去意义。"},
+ {n:39,tag:"M7",cat:"mod",q:"To correctly delete a key from an open-addressing hash table, you should:",
+  opts:["Simply clear the slot","Lazily mark the slot as deleted to preserve the probe sequence","Rebuild the entire table on every deletion","Ignore deletions entirely"],ans:1,
+  exp:"✅ B. 直接清空会留洞断探测链→误判'不存在';应懒删除(标记 deleted)。"},
+ {n:40,tag:"M8",cat:"mod",q:"Why use std::vector<std::unique_ptr<std::mutex>> for per-slot locks instead of std::vector<std::mutex>?",
+  opts:["A mutex object is too large to store in a vector","std::mutex is non-movable/non-copyable, but vector growth requires movable elements","std::vector does not support mutex types","To enable encryption of the locks"],ans:1,
+  exp:"✅ B. mutex 不可移动/拷贝,而 vector 扩容要移动元素→用 unique_ptr,只移动指针。"},
+ {n:41,tag:"M8",cat:"mod",q:"Which statement about std::shared_mutex is correct?",
+  opts:["Only one thread at a time, regardless of read or write","Multiple readers (shared_lock) OR a single writer (unique_lock) at a time","Readers and a writer may hold it simultaneously","It is always slower than a plain mutex"],ans:1,
+  exp:"✅ B. shared_mutex:多读者并发(shared_lock) 或 单写者独占(unique_lock)。读多场景更快。"},
+
+ // ===== PA1 / PA2 implementation =====
+ {n:42,tag:"PA1",cat:"pa",q:"In PA1, parseInt calls stoi(s, &idx) and checks that idx == s.size(). Why?",
+  opts:["To handle negative numbers","To strictly reject rows whose ID has trailing non-numeric characters (e.g., '100abc')","Purely for performance","Because stoi requires it"],ans:1,
+  exp:"✅ B. 检查整串都被解析,严格拒绝尾随字符(stoi 默认只解析前缀、很宽容)。"},
+ {n:43,tag:"PA1",cat:"pa",q:"PA1 persists CSV changes by writing to a temporary file and then renaming it over the original. The main reason is:",
+  opts:["To compress the data","To make the write atomic and crash-safe (readers see either the old or new file, never a half-written one)","To speed up reads","Because rename is mandatory in C++"],ans:1,
+  exp:"✅ B. 临时文件 + rename = 原子交换;崩溃时要么旧文件完整、要么新文件完整,不会半写。"},
+ {n:44,tag:"PA1",cat:"pa",q:"In PA1's addEngagementRecord, why verify that the postId and username already exist before adding the record?",
+  opts:["For performance","To enforce referential integrity (no engagement may reference a non-existent post or user)","To sort the records","To compress storage"],ans:1,
+  exp:"✅ B. 外键检查=引用完整性,不能有指向不存在帖子/用户的互动记录。"},
+ {n:45,tag:"PA2",cat:"pa",q:"In PA2, PageGuard (an RAII wrapper) is move-only (copy is deleted). Why?",
+  opts:["For performance only","To ensure single ownership so a page is not unfixed twice (double pin-decrement / double unlock)","To allow copying across threads","There is no real reason"],ans:1,
+  exp:"✅ B. 唯一所有权;若可拷贝,两个 guard 析构会 unfix 两次(双减 pin、双解锁)→错误。move 时要置空旧 frame_。"},
+ {n:46,tag:"PA2",cat:"pa",q:"In PA2, the per-page use_counter is declared std::atomic. Why?",
+  opts:["To save memory","Because concurrent threads fix/unfix the same page, so the pin count must be incremented/decremented atomically","Because the OS requires it","To enable encryption"],ans:1,
+  exp:"✅ B. 多线程并发 fix/unfix 同一页,pin 计数必须原子操作防 data race。"},
+ {n:47,tag:"PA2",cat:"pa",q:"PA2's FrameLockTable uses a per-frame std::shared_mutex rather than one global lock for the whole buffer pool because:",
+  opts:["It is simpler to implement","Fine-grained per-frame locking allows concurrent access to different frames (a global lock would serialize everything)","Global locks are not allowed in C++","shared_mutex cannot be declared globally"],ans:1,
+  exp:"✅ B. 细粒度每帧锁让不同帧并发访问;一把全局锁会把所有操作串行化,毁掉并发。"},
+
+ // ===== Papers 1-4 =====
+ {n:48,tag:"Paper 1",cat:"paper",q:"According to Codd's relational model paper, which statement is INCORRECT?",
+  opts:["Applications should remain correct even if the stored ordering of records changes","An application may reference a specific index name for performance tuning","Logical correctness should not depend on a particular tree or network access path","The relational model removes pointer-based access-path dependence"],ans:1,
+  exp:"✅ B 是错的(=违反 Codd)。引用特定索引名正是 Codd 要消灭的 indexing dependence(索引依赖)。"},
+ {n:49,tag:"Paper 2",cat:"paper",q:"Per 'What Goes Around Comes Around', which statement is NOT correct?",
+  opts:["Many NoSQL/document systems later added SQL interfaces and ACID transactions","The column-family (wide-column) model is a columnar data model tailored for OLAP","Lakehouses use open formats (Parquet/ORC) plus a metadata layer (Delta Lake/Iceberg/Hudi)","Specialized vector DBMSs will likely become unnecessary as RDBMSs add native vector types/indexes"],ans:1,
+  exp:"✅ B 是错的。column-family 不是列式模型,是文档模型的简化版(名字带 column 是陷阱)。"},
+ {n:50,tag:"Paper 2",cat:"paper",q:"Comparing a lakehouse to PostgreSQL (per 'What Goes Around'), which statement is NOT correct?",
+  opts:["A lakehouse keeps data in open formats on low-cost object storage","Lakehouse PK/FK constraints are often informational rather than enforced","Lakehouses outperform PostgreSQL on low-latency (OLTP) transactions","Object-store commit latency limits write throughput; tiny writes cause small-file bloat"],ans:2,
+  exp:"✅ C 是错的。lakehouse 面向 OLAP,对象存储延迟高,不擅长低延迟事务(那是 PostgreSQL 行存的强项)。"},
+ {n:51,tag:"Paper 3",cat:"paper",q:"Per Stonebraker's 'OS Support for Database Management', which is NOT a reason DBMSs build their own buffer pool?",
+  opts:["OS LRU buffering performs poorly for sequential scans (toss-immediate is better)","The OS cannot correctly prefetch the DB-specific next block","OS buffer managers natively provide 'selected force-out' for commit ordering","The per-fetch overhead through the OS is high (thousands of instructions)"],ans:2,
+  exp:"✅ C 是错的。OS 恰恰缺少 selected force-out,所以 DBMS 才自建缓冲池。"},
+ {n:52,tag:"Paper 3",cat:"paper",q:"The 'convoy phenomenon' described by Stonebraker refers to:",
+  opts:["A RAID rebuild after disk failure","Processes queuing up behind a descheduled process that holds a short-term lock they need","A disk-arm scheduling technique","A type of hash collision"],ans:1,
+  exp:"✅ B. 护航现象:持短期锁的进程被调度走,其它进程全堵在它后面排队,性能崩盘。"},
+ {n:53,tag:"Paper 4",cat:"paper",q:"Per the Umbra paper, which statement is NOT correct?",
+  opts:["Umbra uses variable-size pages to store large objects natively and consecutively","Fixed-size pages are universally superior, so Umbra avoids variable-size pages","Optimistic latching reduces contention for read-heavy access","Combining a large in-memory buffer with fast SSDs is more economical than pure in-memory"],ans:1,
+  exp:"✅ B 是错的。Umbra 主张可变大小页(便于存大对象);固定页处理大对象更麻烦。"},
+
+ // ===== 附加题：补强 PA 与 论文（让四大板块更均衡）=====
+ {n:54,tag:"PA1",cat:"pa",q:"In PA1, loadMultipleFlatFilesInParallel parses each CSV in its own thread, joins them, then commits under a mutex. What does that final mutex-protected commit guarantee?",
+  opts:["Faster parsing speed","Readers always see a consistent snapshot of users/posts/engagements, never a partial update","The CSV files get compressed","Duplicate rows are removed automatically"],ans:1,
+  exp:"✅ B. commit 加锁保证原子可见性——读者要么看到全旧、要么全新,绝不看到半更新状态。"},
+ {n:55,tag:"PA2",cat:"pa",q:"In PA2's 2Q policy, when is a page promoted from the FIFO queue to the LRU queue?",
+  opts:["When it is first loaded into memory","On its second access while still in the FIFO queue","When it becomes dirty","Never; pages stay in the FIFO queue"],ans:1,
+  exp:"✅ B. 新页先进 FIFO 队;第二次被访问(还在 FIFO 时)晋升到 LRU 队(认定为热页)。"},
+ {n:56,tag:"PA2",cat:"pa",q:"In PA2, when must a dirty (modified) page be written back to disk?",
+  opts:["Immediately on every single modification","Before it is evicted from the buffer pool, to avoid losing modifications","Only when the program exits","Never; the OS handles it automatically"],ans:1,
+  exp:"✅ B. 脏页驱逐前必须先写回磁盘(在独占锁下),否则改动丢失。"},
+ {n:57,tag:"PA2",cat:"pa",q:"In PA2, if every page in both the FIFO and LRU queues is currently pinned (in use) and a new page must be loaded, the buffer manager should:",
+  opts:["Overwrite the oldest pinned page anyway","Throw a buffer_full_error","Silently ignore the request","Automatically double the buffer pool size"],ans:1,
+  exp:"✅ B. 两队列都没有可驱逐(未 pin)的页时,抛 buffer_full_error;不能动 pin 住的页。"},
+ {n:58,tag:"Paper 2",cat:"paper",q:"Per 'What Goes Around', which statement about MapReduce/Hadoop is NOT correct?",
+  opts:["Map is like a UDF and Reduce is like a GROUP BY","Hadoop largely died and was replaced by SQL-on-Hadoop (Hive/Presto) and distributed RDBMSs","MapReduce remains the dominant model for OLAP analytics today","Google moved its crawl processing off MapReduce because it was a batch system"],ans:2,
+  exp:"✅ C 是错的。MapReduce/Hadoop 早已式微,被 SQL-on-Hadoop 和分布式 RDBMS 取代。"},
+ {n:59,tag:"Paper 2",cat:"paper",q:"Per 'What Goes Around', which statement about key-value (KV) stores is correct?",
+  opts:["They are ideal for complex records needing joins and secondary indexes","They suit simple single-value access (caching, sessions) but are risky for records needing multiple fields/joins","RDBMSs cannot emulate KV stores","They always outperform RDBMSs for every workload"],ans:1,
+  exp:"✅ B. KV 适合简单单值访问(缓存/会话);复杂多字段/join/二级索引就力不从心,RDBMS 反而能轻松模拟 KV。"},
+ {n:60,tag:"Paper 4",cat:"paper",q:"In Umbra, which technique avoids a central hash-table bottleneck when translating page identifiers to memory addresses?",
+  opts:["A bigger global lock","Pointer swizzling (a swip holds either an in-memory pointer or an on-disk page ID)","Keeping all pages permanently in DRAM","Disabling the buffer manager entirely"],ans:1,
+  exp:"✅ B. 指针混写(pointer swizzling):swip 要么是内存指针、要么是磁盘页号,避免全局哈希表瓶颈。"},
+ {n:61,tag:"Paper 1",cat:"paper",q:"Per Codd's relational model paper, what does 'normalization' refer to?",
+  opts:["Encrypting the data for security","Eliminating non-simple (nested) domains to produce flat relations","Sorting tuples by their primary key","Compressing relations to save disk space"],ans:1,
+  exp:"✅ B. 范式化=消除'非简单域'(嵌套域),把数据拆平成规整的二维表。"}
+];
+
+const catName = {book:"课本 Book", mod:"模块 Module", pa:"作业 PA", paper:"论文 Paper"};
+const tagClass = {ch1:"book",ch2:"book",ch12:"book",ch13:"book",M1:"mod",M2:"mod",M3:"mod",M4:"mod",M5:"mod",M6:"mod",M7:"mod",M8:"mod",PA1:"pa",PA2:"pa","Paper 1":"paper","Paper 2":"paper","Paper 3":"paper","Paper 4":"paper"};
+let scored = false;
+
+function letter(i){return "ABCD"[i];}
+
+function render(){
+  const quiz = document.getElementById('quiz');
+  quiz.innerHTML = QUESTIONS.map(Q => {
+    const tc = Q.cat==="calc" ? "calc" : (tagClass[Q.tag]||"mod");
+    const opts = Q.opts.map((o,i)=>`
+      <label class="opt" data-q="${Q.n}" data-i="${i}">
+        <input type="radio" name="q${Q.n}" value="${i}"> <b>${letter(i)})</b> ${o}
+      </label>`).join("");
+    return `<div class="q" id="qbox${Q.n}">
+      <span class="tag ${tc}">${Q.tag}</span>
+      <div class="qt"><span class="num">${Q.n}.</span>${Q.q}</div>
+      ${opts}
+      <div class="exp" id="exp${Q.n}"></div>
+    </div>`;
+  }).join("");
+  quiz.addEventListener('change', updateProgress);
+}
+
+function updateProgress(){
+  let n=0;
+  QUESTIONS.forEach(Q=>{ if(document.querySelector(`input[name="q${Q.n}"]:checked`)) n++; });
+  const t = `已作答 ${n} / ${QUESTIONS.length}`;
+  document.getElementById('progress').textContent = t;
+  document.getElementById('progress2').textContent = t;
+}
+
+function score(){
+  let correct=0;
+  const byCat={book:[0,0],mod:[0,0],pa:[0,0],paper:[0,0]};
+  QUESTIONS.forEach(Q=>{
+    const cat = (Q.cat==="calc")?"book":Q.cat; // calc 题归入它所属板块(都是 ch12)
+    const realCat = tagClass[Q.tag]||"mod";
+    byCat[realCat][1]++;
+    const chosen = document.querySelector(`input[name="q${Q.n}"]:checked`);
+    const box = document.getElementById('qbox'+Q.n);
+    const labels = box.querySelectorAll('label.opt');
+    labels.forEach(l=>{l.classList.remove('correct','wrong');});
+    // mark correct option
+    labels[Q.ans].classList.add('correct');
+    const exp = document.getElementById('exp'+Q.n);
+    exp.classList.add('show');
+    if(chosen){
+      const ci = parseInt(chosen.value);
+      if(ci===Q.ans){ correct++; byCat[realCat][0]++;
+        exp.innerHTML = `<span class="verdict v-ok">✔ 正确</span> ${Q.exp}`;
+      } else {
+        labels[ci].classList.add('wrong');
+        exp.innerHTML = `<span class="verdict v-no">✘ 你选了 ${letter(ci)}，正确答案 ${letter(Q.ans)}</span><br>${Q.exp}`;
+      }
+    } else {
+      exp.innerHTML = `<span class="verdict v-no">✘ 未作答，正确答案 ${letter(Q.ans)}</span><br>${Q.exp}`;
+    }
+  });
+  const total=QUESTIONS.length, pct=Math.round(correct/total*100);
+  let grade = pct>=85?"🏆 很扎实":pct>=70?"👍 良好":pct>=55?"📈 需加强":"📚 系统重读";
+  const res=document.getElementById('result');
+  res.classList.add('show');
+  res.innerHTML = `<div class="score">${correct} / ${total} <small>(${pct}%) — ${grade}</small></div>
+    <div class="break">
+      ${Object.keys(byCat).map(k=>`<div><b>${catName[k]}</b><br>${byCat[k][0]} / ${byCat[k][1]} 正确</div>`).join("")}
+    </div>
+    <div style="margin-top:10px;font-size:13px;color:var(--muted)">下方每题已展开中英文解析；红色=你选错，绿色=正确答案。哪个板块正确率低就回 <code>精讲版/</code> 重点补。</div>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+  scored=true;
+}
+
+document.getElementById('submitBtn').addEventListener('click', ()=>{
+  let n=0; QUESTIONS.forEach(Q=>{ if(document.querySelector(`input[name="q${Q.n}"]:checked`)) n++; });
+  if(n<QUESTIONS.length && !confirm(`你还有 ${QUESTIONS.length-n} 题没作答，确定提交并出分吗？`)) return;
+  score();
+});
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(scored && !confirm("确定清空所有作答、重新开始吗？")) return;
+  document.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
+  document.querySelectorAll('.exp').forEach(e=>{e.classList.remove('show');e.innerHTML="";});
+  document.querySelectorAll('label.opt').forEach(l=>l.classList.remove('correct','wrong'));
+  document.getElementById('result').classList.remove('show');
+  scored=false; updateProgress(); window.scrollTo({top:0,behavior:'smooth'});
+});
+
+render();
+updateProgress();
+</script>
+</body>
+</html>

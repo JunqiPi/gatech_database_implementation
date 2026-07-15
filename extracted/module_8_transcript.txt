@@ -1,0 +1,752 @@
+>> In this module, we will explore advanced
+indexing structures that go beyond hash tables and B+ trees to support
+specialized queries. First, we will look at the trie structure that is
+often used for string search, such as prefix-based-like
+queries. Next, we will learn about
+the inverted index, an indexing structure for fast full text search queries across a large
+collection of documents. We will then dive
+into the RTree, an Indexing structure
+designed for spatial data such as
+locations of restaurants. We will then discuss
+about the learned index that uses machine learning
+models for indexing data.
+
+>> In this lesson, we will learn about the trie data structure that is useful for querying strings like product
+names in a database. We will discuss about
+a particular variant of trie called Patricia Trie. Imagine an e-commerce platform with a large product catalog, like multiple models of smartphones from
+Samsung and Apple. If the user is interested
+in searching for a particular category like
+Samsung Galaxy phones, how can we support this query? We refer to such queries as prefix queries
+because they search for all the strings
+in the dataset that begin with a
+specific prefix. Why can't we just use a B+Tree
+for such prefix queries? Using a B+Tree for
+storing strings, such as product names, comes with significant
+storage and compute overhead. Keys like Samsung
+Galaxy S21 Ultra have to be stored at
+multiple levels of the tree, consuming a lot of space and slowing down
+search operations as each node traversal involves processing
+lengthy and similar keys. So B+Trees are not well suited for quickly answering
+such prefix queries. The trie is a data structure designed specifically
+for such prefix queries. The term trie comes from
+the word retrieval. A trie is a tree storing a set
+of strings where each node typically contains a
+single character or a set of characters shared between the keys like Samsung Galaxy. Each path from the root node
+to a leaf node represents a string inserted into the
+trie like Samsung Galaxy A55. By virtue of this design, try supports fast prefix search, as we just need to traverse down the nodes with the
+characters in the prefix. By efficiently storing
+overlapping characters, a trie saves space when many strings
+have the same prefix. There is a more space
+efficient variant of trie called Patricia Trie. Patricia Trie saves space
+compared to a basic try by merging sequences of
+single character nodes into a single node. So a single node can now contain multiple characters or
+even whole strings. For example, here we have a single node for
+Samsung Galaxy. Compared to a basic trie, operations like
+inserting a string or finding a string is faster in a Patricia Trie due to its compact structure
+with fewer nodes. Let's look at an example. Consider inserting two strings into a trie, hello and helium. Initially, inserting
+hello involves simply creating a new node
+since the root node is empty. When helium is inserted, the process identifies HEL as
+a common prefix with hello. The original hello node is split into a node with only
+the common prefix. Then we add the lo and ium as new child nodes
+under the hel node. In this way, the Patricia Trie dynamically adjust to the
+newly inserted strings. Retrieving a string involves navigating from the root node to the relevant leaf node using each character of the key to narrow
+down the search path. For example, if we are
+searching for the word hello, we start from the
+root node and follow the path with the
+words hel and then lo. If you search for the
+string helicopter, we start from the root node
+and follow the path to hel. But then there is
+no way to icopter, so helicopter is not
+present in this trie. Here is an example of a more complex trie
+with not just keys, but also values
+associated with the keys. We store the characters of
+the keys in the trie nodes. For example, France is stored as a key and is associated
+with the value six. Keys with shared
+prefixes like hello, helium and halibut or map
+to one, two, and five. We can also have
+unique values for keys where one key is a
+prefix of another key. For example, hero is
+a prefix of heron, and we are mapping hero to
+three and heron to four. Here's the structure of a
+node in a Patricia Trie. Each node has a Boolean flag to indicate if it marks
+the end of a word, a value, and a children map that maps substrings
+to child nodes. The insertion process in a
+Patricia Trie is recursive. We start by checking if the entire word
+has been inserted. This is the termination
+case for the recursion. If the insertion has reached
+the end of the word, it sets the end of word
+flag to true and marks the completion of
+the insertion in the try and stops
+further recursion. If not, it looks at the
+remaining substring of the word from the current
+index that must be inserted. We find the common prefix
+between the string currently being added and the
+existing children's keys. If a common prefix is found, but it is shorter than
+the existing key, then the node needs to be split to accommodate the
+difference substring. This loop shown here calculates the length of
+the common prefix between the current substring
+of the word being inserted and the keys already present in the
+children map of the node. If no child node matches the remaining part of
+the key being inserted, a new node is created
+for that segment. For example, when
+inserting the word hello, if there is no match
+in the empty try, a new node is created to
+store that string segment. The remainder of the
+key, in this case, hello is then
+recursively inserted, ensuring that the Patricia Trie captures that unique
+part of the key. When a common prefix is found between the key being
+inserted and an existing key, but it's shorter than the
+existing key in the try, we need to split the node. The common part
+becomes a new node, and the remainder of
+the original key and the new key are split
+into separate branches. For example, when
+inserting the word helium, a common prefix hel is found with the
+existing word hello. Since this prefix is shorter
+than the full key hello, we need to split the node. The common prefix hel
+becomes a new node with the remainder lo and ium branching off
+into separate parts. This splitting ensures
+that the Patricia Trie remains compact
+while accommodating the differences between keys. Let's next compare
+the complexity of a Patricia Trie and a B+Tree. The time complexity of both insertion and search
+operations is O(L), where L is the average length of the key being
+inserted or searched. In contrast in a B+Tree, the cost of these operations depend logarithmically
+on the number of keys. The space complexity of a try depends on
+both the number of keys and the average length of the key hence order of N*L, common prefixes are shared, but when keys are dissimilar, each key could lead
+to new branches. In contrast, the space
+complexity of a B+Tree is determined only by the number of keys N stored in the tree. Let's next compare
+some other aspects of Patricia Trie and B+Tree. Let's first look at
+the target use case. Patricia Tries are great
+for fast prefix queries, making them ideal for tasks
+like dictionary lookups. B+Trees excel in handling fast range queries
+over numeric data. When it comes to
+memory efficiency, Patricia Tries can
+be less efficient, particularly with
+dissimilar keys, as they store individual
+prefixes in separate nodes. B+Trees on the other hand,
+are much more memory efficient packing multiple
+keys into each node. In terms of range queries, Patricia Tries can
+support them by traversing the tree
+nodes lexicographically. That is in alphabetical order. However, processing
+a range query using a Patricia Trie is not super efficient due to the need to visit
+multiple nodes. B+Trees in contrast,
+are specifically designed for efficient
+range queries as the data is stored
+in sorted order in the linked leaf nodes
+at the same depth. To recap, in this lesson, we explore how tries offer an efficient solution
+for searching over a large
+collection of strings, such as product names in
+an e-commerce platform. We also discussed about how
+Patricia Tries optimize both space and retrieval time
+compared to a basic trie.
+
+>> In this lesson, we will learn about
+inverted index, an important indexing
+data structure to support search
+over text documents. We will discuss about how
+the inverted index forms the backbone of web scale
+search engines like Google. The inverted index is
+a data structure used for efficient word search
+in a text document. Its primary function
+is to map each word to the locations in which it
+appears within a document. This mapping is achieved
+by constructing a dictionary where
+each key is a word, and the associated
+value contains the positions within the
+documents where the word occurs. For example, here is an
+inverted index built on the War and Peace novel
+written by Leo Tolstoy. The word Russia appears
+at Positions 10 and 20, and the word Napoleon is
+found at Position 25. Besides basic word search, inverted index can also support other types of text search
+like proximitySearch. In proximitySearch, we aim
+to find documents where one word appears within a specified distance
+of another word. For example, if a user is searching for documents
+where Russia and Napoleon appear together
+within a 10 word distance, using the inverted index, we can find that
+Russia is at Position 20 and Napoleon is
+at Position 25, and they have a distance of
+five words from each other. The inverted index can support search across a
+library of documents. To support this kind
+of library search, we need to map each word to a specific document and the position within
+that document. For example, here,
+we keep track of occurrences of the word
+Napoleon across three books. In the first book, Napoleon
+appears at Position 25. In the second book,
+Napoleon appears at Position 30 and so on. Inverted index is optimized
+for handling text data. It allows for text
+search operations like word search and
+proximitySearch. Internally, the inverted
+index is typically built on a hash
+table where keys are words and each key
+maps through a list of document IDs and the positions where the word occurs
+in those documents. In C++, we can build an inverted index using
+a nested map structure. The first level is a map
+where the key is a word, and the value is another map. In the second map, the key
+is the document number, and the value is a vector of positions where that word
+appears in that document. For example, the word Russia
+maps to Positions 5 and 20 in Document 1 and
+Position 10 in Document 2. Let's next look at the
+core functions for building an inverted
+index in C++. There are three core functions
+in an inverted index. AddDocument, getDocuments,
+and proximitySearch. Each function plays a
+critical role in building, retrieving, and
+querying the index for words and
+document relevance. The addDocument function is used for indexing new documents. It processes each
+word in the document, converting it to lower case if case insensitive
+matching is needed. It updates the inverted
+index by mapping each term to its document ID and position within
+that document. The getDocuments
+function enables word based retrieval
+from the index. It converts the input word to lower case and retrieves a list of document IDs where the word appears using a set of integers. This approach allows
+for quick access to all the documents
+containing a specific word, serving as the basis for
+more advanced queries. The proximitySearch
+function locates words that occur near each
+other within a document. For a pair of words, it iterates through
+the positions recorded in the index to
+determine if they are within a specified distance K. The STD apps function
+is used to calculate the absolute difference between the positions of the two words, Position 1 and Position 2
+within the same document. Overall, this proximitySearch
+function is useful for context based retrieval based on the relative
+positions of words. Inverted indices provide for lookups for individual
+words and support complex queries such as Boolean and AND OR operations
+and proximitySearches. For instance, a search
+query like documents with the words apple and orange retrieves documents
+containing both terms by combining their respective
+sets of document IDs. Inverted indices are
+highly scalable, which makes them
+suitable for handling large document collections such as those required in
+web search engines. One challenge in inverted
+indexing is the need to store positions for each occurrence of a word that leads to a
+large storage footprint. This storage footprint
+can be minimized through compression techniques like Delta encoding of the positions. Additionally, to scale
+an inverted index to a large document collection, we require disk based
+storage management. Let's next look at the
+connection between inverted index and
+web-scale search. The concept of inverted indexing is central to web-scale search. For example, Hector
+Garcia-Molina led the Stanford Digital Library
+project in the 1990s. As a part of this
+project, his students, Larry Page and Sergey
+Brin developed web-scale search techniques that led to the creation of Google. A web-scale Inverted index supports text search across
+billions of documents. There are two important
+optimizations to support efficient search in a
+web-scale inverted index. The first is sharding. This breaks the index into smaller manageable
+pieces called shards, which can be distributed
+across multiple servers. The second is replication. Each shot is duplicated across
+several servers to balance the workload and
+ensure that the system stays reliable even
+under heavy traffic. Together, these
+optimizations make it possible for
+search engines to handle massive datasets and serve queries quickly
+and efficiently. One way to distribute the inverted index is to
+do word based sharding. Each shard contains
+a subset of words. Here Shard 1 contains
+the mappings for words 1-100 and shard is replicated on Servers
+A and B. Shard 2 handles words 101-200 and is replicated on Server C and D, and so on, with each shard replicated across
+multiple servers. Sharding and replication ensures that the workload is distributed evenly across the system with replicas providing fault
+tolerance and load balancing. After retrieving the relevant documents from the
+inverted index, ranking algorithms prioritize
+documents by relevance. Ranking algorithms such as
+page rank or machine learning based methods are important for increasing search
+result accuracy. While ranking is distinct
+from the indexing process, the inverted index
+is fundamental for narrowing down documents
+based on word relevance. The challenge for the
+next generation is to further improve how we store, retrieve, and make sense
+of the world's data. We need advances in
+both indexing and ranking techniques to develop the next generation of
+data retrieval systems. To recap, in this lesson, we explore how the inverted
+index is useful for supporting word and
+proximitySearch in text documents. We also discussed about how
+it powers web scale search over millions of documents via optimizations like
+sharding and replication.
+
+>> In this lesson, we
+will learn about R-tree, a data structure designed for spatial indexing
+and querying. We will discuss about how R-tree supports nearest
+neighbor queries, making it very important for modern location-based
+applications and other high-dimensional
+applications. B+ trees are
+fundamentally limited in handling
+multidimensional data. For example, if you create a composite index on attributes
+like salary and age, B+ tree linearizes the
+two-dimensional space, first sorting based on
+salary and then by age. This approach does
+not efficiently capture multidimensional
+proximity relationships, which are essential
+for spatial queries. The R-tree overcomes these
+limitations by grouping multidimensional keys based on their spatial proximity
+across multiple dimensions. It was designed by Antonin
+Guttman and Mike Stonebraker, in 1980s at Berkeley. Unlike a B+ tree, R-trees supports
+efficient queries over both age and salary attributes simultaneously by creating
+spatial clusters. Each combination of
+salary and age can be represented as a point in
+a two-dimensional space, where the x-axis represents salary and the y-axis
+represents age. The R-tree organizes these points
+hierarchically by grouping them into bounding rectangles that represent spatial clusters. This concept of
+multidimensional points can be generalized to geographic coordinates where latitude and longitude
+define a point. Then we can use an
+an R-tree to support spatial queries like
+finding nearby restaurants. We can even store the
+features of an image determined by a
+machine learning model as a multidimensional point. Then by grouping images with
+similar features together, R-trees can support
+nearest-neighbor queries to locate the most similar
+phase in a phase database. Similar to a B+ tree, R-tree is also a
+balanced data structure that supports efficient
+search operations. It partitions the
+two-dimensional space using bounding rectangles. Each rectangle or bounding box represents the minimum boundary that can enclose spatial objects or subgroups of
+other rectangles. So R-trees relies on two-geometric data types,
+points and rectangles. A point represents a
+2D coordinate such as a specific location in space defined by
+its x and y values. A rectangle defines
+a bounding box, which can enclose
+multiple points or other rectangles
+efficiently grouping related points for
+spatial indexing. An R-tree consists of
+three types of nodes. A leaf node, contains points and is at the lowest
+level of the tree. An inner node contains child nodes and they
+are bonding rectangles, organizing the data into manageable clusters
+for efficient queries. The topmost inner node of
+the tree is the root node, which is the entry point for
+navigation through the tree. This diagram illustrates the hierarchical
+structure of an R-tree. At the top R1 and R2 are part of the root node
+encompassing the entire dataset. Below them, inner
+nodes like R5 and R7 group spatial objects into manageable bounding rectangles. The lowest level contains leaf nodes such as R12 and R16, which store individual
+points or spatial objects. This layered
+organization enables efficient spatial queries by narrowing the search to
+relevant regions at each level. This diagram shows the
+hierarchical tree structure of an R-tree in action. The root node at the
+top divides the dataset into two inner nodes R1 and R2. These nodes are
+further divided into smaller nodes such as R3 and R7, which manage subsets
+of the data. Finally, the leaf
+nodes like R8 through R19 are compact rectangles
+enclosing the actual points. In C++, the point struct has two floating point numbers
+for the x and y coordinates. For example, each
+point could represent the salary and age
+values of an employee. Similarly, each
+rectangle is defined by its minimum and
+maximum coordinates. In C++, the rectangle
+struct defines a two-dimensional bounding box with four floating
+point numbers. MiniX, minY, maxX, and maxY to set the bounds. The rectangle struct
+has two methods. The contains method checks if a point lies inside
+that rectangle. The intersex method checks if the rectangle overlaps
+with another rectangle. The contains method
+checks if a point is inside a given rectangle by verifying that the points x and y coordinates fall within
+the bounds of the rectangle. This method is useful
+to determine if a query point lies within a
+specific spatial boundary. The intersects method checks
+if two rectangles overlap. By comparing their boundaries, it determines if there is
+any spatial intersection, which is essential
+for identifying overlapping regions
+in spatial queries. Let's next look at inserting
+points into the R-tree. Inserting a point into
+the R-tree starts by determining the best
+child node for insertion. The algorithm selects the
+inner node that requires the least enlargement of its bounding rectangle to
+accommodate the new point. This keeps the tree
+structure compact, reducing the space occupied
+by bonding rectangles. The chooseBestChild function
+selects the child node with a minimal enlargement required to enclose
+a new rectangle. This process begins by creating a rectangle from
+the inserted point, effectively copying the points coordinates twice to
+define the bounds. The points x and y
+values then become the minimum and maximum
+bounds of the rectangle. This minimal enlargement
+technique preserves the compactness of the R-tree and minimizes the
+area expansion. We recursively navigate
+down to a leaf node. This code shows how we insert
+the point into a leaf node. If a leaf node exceeds the maximum capacity of the
+points that it can contain, then the R-tree performs
+a split operation. We use the quadratic
+split algorithm to divide the node into two nodes based on the two points with the
+greatest distance called seeds. The remaining points
+are assigned to the new nodes to minimize the bounding
+rectangle expansion. The result is two smaller nodes, each containing its
+own set of points. Let's look at the code. The chooseSeeds
+function identifies two seeds to initialize the
+split of a R-tree node. It calculates the pair of points with a maximum
+distance between them, ensuring that they are as
+far apart as possible. A nested loop iterates
+through all the point pairs, computing the Euclidean
+distance between them. The two points with
+the largest distance are selected as seed1 and seed2. These seeds act as the
+starting points for dividing the data into two groups during
+the split process. Similar to a B+ tree, the splitting and merging
+operations ensure that the R-tree remains balanced
+for efficient search times. So the search time
+is logarithmic with respect to the
+number of points n.
+
+>> Let's next look at some
+queries supported by R-Tree. First, let's look
+at range queries. Range queries searches
+for all the points that fall within
+two-dimensional range. For example, consider
+a query where the salary must fall
+between 100 K and 200 K, and each must be between 40-60. The R-Tree supports this range query by
+recursively checking all the nodes whose bonding rectangles intersect with
+the query rectangle. If a leaf nodes rectangle
+overlaps with the query region, all the contained points within that rectangle
+are returned. For internal nodes, the query proceeds
+recursively through the child nodes
+that may intersect the query rectangle.
+Let's look at the code. This range query
+function performs a spatial search to find all the points within
+the given rectangle. If the current node is a leaf, it itertes through its
+points and checks if each point is contained
+within the rectangle. Matching points are added
+to the results spector. If the current node
+is an inner node, it checks which
+child nodes bonding rectangles intersect with
+the query rectangle. Then for each
+intersecting child, the function recurses
+deeper into the tree. This recursive
+approach ensures that only the relevant portions
+of the tree are searched. Next, let's look at
+nearest neighbor queries. Nearest neighbor query
+focuses on finding the closest point or points
+to a specific target point. For example, given
+a target salary near 200 K and age close to 50, the R-Tree starts by checking the nearest
+bounding rectangle. The search proceeds
+recursively narrowing down to the leaf nodes that contain points closest
+to the target. This process minimizes
+distance calculations and efficiently identifies
+the nearest neighbor. Let's look at the code. This nearest neighbor function performs a k nearest neighbor
+search in an R-Tree. For inner nodes, it calculates
+the minimum distance from the query point to each
+child's bonding rectangle. These distances are
+stored in a vector sorted to prioritize the
+closest child nodes first. The function then
+recursively explores the children in the
+order of proximity, ensuring that the nearest neighbors are found efficiently. If the current node
+is a leaf node, it calculates the
+euclidean distance between the query point and
+each point in the node. Each point is pushed into a priority cue
+sorted by distance, ensuring that the closest
+points are prioritized. To maintain only the
+k closest points, the cue pops the farthest point
+whenever its size exceeds k. Let's next look at some applications
+enabled by R-Tree. We can use an R-Tree for quickly finding nearby restaurants
+with range queries. Each restaurant is
+represented as a point in a 2D space defined by its latitude and longitude
+and inserted into the R-Tree. To find restaurants within a certain radius of
+a user's location, a query rectangle is created to represent the bounding
+box of the search area. Finally, a range query is performed on the R-Tree
+using this rectangle, returning all the restaurants that fall within
+the search area. We can also use R-Trees for
+matching drivers to riders. We can represent driver
+locations as points in 2D space using their latitude and longitude and insert the
+points into the R-Tree. When a rider requests a ride, their location is also
+represented as a point. We can then do a nearest
+neighbor query to find the closest k drivers
+to the rider's location. This process ensures
+efficient matching of riders to the nearest
+available drivers. Our basic R-Tree can only support
+two-dimensional indexing. It cannot support high
+dimensional spaces needed for applications
+like image search. We will next
+generalize the R-Tree from two dimensions
+to N dimensions. And this will allow
+us to support higher dimensional applications
+like image search. ND R-Tree is the generalization of R-Tree to N dimensions. And ND R-Tree can
+efficiently manage data points in
+multiple dimensions like tens of dimensions. For example, this picture shows a three-dimensional
+R-Tree. Each bounding box represents
+a partition in 3D space, enclosing a group of nearby data points
+distributed across the X, Y, and Z dimensions. The nested structure of
+these bounding boxes allows efficient querying by focusing only on relevant partitions. Let's look at the structure
+of the ND R-Tree. Each data point in the tree now represents an
+N-dimensional point, such as a feature vector. Points are grouped into
+N-dimensional rectangles, also called
+hyperrectangles, which define bonding volumes in
+multidimensional space. Similar to a 2D R-Tree, the hierarchical
+structure of an ND R-Tree also includes leaf nodes that
+store the actual points, inner nodes that manage
+bonding hyperrectangles, and a single root node that
+connects the entire tree. Let's look at the code. The point structure
+shown here contains a vector of coordinates along
+with an optional label. For example, in
+image recognition, a 512 tool dimensional point can describe the
+features of an image. This code shows the
+rectangle structure adapted for
+multi-dimensional spaces. The rectangle is represented by two vectors, min coordinates, and max coordinates
+which specify the minimum and maximum
+bounds in each dimension. In 2D, this would be
+a rectangle bounded by X min X max, Ymin and Ymax. In 3D, this would be a cuboid bounded by X,
+Y, and Z dimensions. In N dimensions, it is a bonding region defined
+in an N-dimensional space. The other functions
+can be generalized in a similar manner for
+building an ND R-Tree. This code snippet shows how
+ND R-Trees can efficiently manage and query game objects
+in large open world games. Each game object such as a player's position
+is represented as a point in three-dimensional
+space pickup. Each game object such as a player's position is represented as a
+point in a 3D space. To check for collisions or
+retrieve visible objects, a bounding box like the area
+around a player is created. The bounding box
+is used to perform a range query retrieving all objects within
+the specified region. The key challenge in building an ND R-Tree lies in balancing
+two competing objectives. First, the tree must
+be well balanced, ensuring that all leaf nodes
+are at the same height. This allows for
+efficient queries by minimizing the
+depth of traversal. Second, the bonding
+rectangles must be carefully constructed to avoid
+excessive overlap and minimize empty space. Less overlap ensures that fewer subtrees are
+processed during searches, striking this balance
+is critical for maintaining query efficiency
+in high dimensional spaces. To recap, in this lesson, we explored how R-Trees provide an efficient solution for indexing and querying
+high dimensional data. We discussed about
+how R-Trees support nearest neighbor queries, enabling quick and
+precise retrieval of the closest points in
+multi-dimensional spaces, making them ideal
+for applications like restaurant search
+and ride matching.
+
+>> In this lesson,
+we will learn about an innovative way to use machine learning for
+database indexing. In particular, we
+will focus on using regression models
+and neural networks for building a learned index. While traditional B+
+trees are widely used, they also come with
+some limitations. First, they have
+hierarchical structures requiring multiple
+levels of traversal, which increases
+disk IO operations. Second, each node in the tree contains
+several node pointers, which results in
+substantial memory overhead when dealing
+with large datasets. Lastly, the rigid
+partitioning in B+ trees does not efficiently handle
+varied data distributions, potentially slowing
+down lookup operations. In a learned index,
+all the inner nodes are machine learning models. At the highest level, the root model predicts which lower level model to follow based on the
+input keys value. The root model divides the entire dataset
+into broader ranges. For example, here,
+the root model splits the dataset into three
+primary ranges from 0-250, 251-900, and 901-1,000. Each sub-model then handles a specific segment
+of the dataset. Finally, at the leaf level, the nodes contain the
+actual key value pairs. The data adaptive nature of learned indices offers
+significant advantages. The root model
+directly identifies which sub-model to access based
+on the data distribution, eliminating the need for
+multiple tree levels. This approach not only reduces memory usage by minimizing
+the need for pointers, but also speeds up
+lookups significantly. In 2018, researchers at Google and Brown introduced the
+idea of a learned index. Inspired by advances
+in machine learning, they proposed that
+indices could be trained as machine
+learning models to predict data
+positions instead of relying on rigid data
+structures like B+ trees. The key idea in a
+learned index is to train ML models like
+a regression model to approximate the mapping
+of keys to their positions. By adapting to the underlying
+data distribution, a learned index can skip
+multiple search steps, typically in a traditional
+B+ tree index. In this table, we compare B+
+trees and learned indices. From a structure standpoint, B+ trees are more rigid
+and hierarchical. In contrast, learned index uses a more data adaptive
+predictive approach. B+ trees perform log in
+comparisons to locate a key, while a learned index can
+predict the location of the key directly supplemented with a neighborhood search
+for precision. B+ trees require
+significant memory due to multiple
+pointers per node. Learned indices are
+more efficient needing fewer nodes by utilizing
+compact models. Let's look at the code
+behind a learned index. The model struct shown here, represents a simple
+linear regression model. It contains two primary
+attributes, slope and intercept, which are used to
+determine the relationship between keys and their
+positions in a table. It contains two main methods. First, the train method that
+takes a vector of keys and their corresponding
+positions to compute the slope and intercept parameters based
+on the input data. Second, the predict method, which uses the trained
+regression model to estimate the position of a new key using the linear formula slope
+into key plus intercept.
+
+>> Let's look at the train
+function in more detail. For all the regression models, both the root model
+and the sub models, training involves
+calculating the mean key and the mean position. We then use these
+averages to determine the slope and intercept
+for the regression model. This training process
+allows the models to later predict the position
+of a key in the dataset. The regression model uses
+the slope intercept form of a line to define linear relationship between
+keys and their positions. So the key here is x and
+the key's position is y(x). The prediction process
+itself is very fast as it is simple
+arithmetic computation. Traditionally,
+slope and intercept are represented by m
+and b respectively. Here's an example of training the model in its
+slope intercept form. Consider that these are the positions and keys
+located at those positions. So the key hundred
+is at position one, and the key 200
+is at Position 3. We train the model by
+calculating the mean, slope and intercept to fit
+the data distribution. We calculate the numerators and denominators for our
+regression model, refining our predictions
+to ensure that the model accurately maps keys to their
+positions in the dataset. The numerator is the
+sum of the product of differences from the
+mean of keys and positions. The denominator measures
+the variance of the keys. Overall, this computation
+effectively assesses how much the position variable y changes with a unit change in
+the key variable X. In this example, the slope is 0.025 and the
+intercept is -1.75. So the overall equation
+looks like this. When we pass the key as
+input to this equation, we see the predicted positions. The predicted position y is not very far away from the actual
+position in the table. For example, for the key 120, both the predicted and
+actual positions are two. We then train sub
+models to accurately predict data positions within
+a given local cluster. The training loop shown
+here involves clearing and repopulating the key
+and position arrays for each sub model. The position prediction process is also hierarchical
+in a learn index, similar to B plus trees. The root model predicts
+which sub model to use, and then the sub model predicts the approximate position of the key within its data cluster. Here is an example of the
+position prediction process. If the key is 650, the root model might predict the second sub
+model and then that second sub model might predict the third position
+within that cluster. The prediction
+function shown here maps the key to its position. It calculates the
+position using the models learned parameters,
+slope and intercept. A regression model is not
+always 100% accurate. It only provides an approximate
+position for a given key. So searchers may
+still need to inspect nearby positions in the
+array to increase accuracy. In this code snippet, we set the search radius
+to five slots and look up those key value pairs until we find the key
+we are searching for. It is possible that we may
+still not find the key, even though the key exists
+elsewhere in the index. This is a fundamental
+limitation of a learned index, compared to a traditional
+index like a B plus tree, which is always accurate. This is a visual example of how a neighborhood search is conducted around a
+predicted position. Here, the predicted
+position is ten, and the search
+radius is two slots. So we look at all the
+slots from position 8-12. Choosing the right search
+radius is crucial. A larger radius increases the likelihood of
+finding the target key, but it can reduce search speed. So this decision must
+be optimized based on the data distribution and the accuracy of the
+model predictions. For example, real
+world skewed data may benefit from dynamic
+radius adjustment. Finally, we can test the
+learn index to evaluate its ability to search for
+the keys as shown here. To summarize, learn indices, support fast lookups and
+reduced memory usage, adapting flexibly to the
+underlying data distribution. However, they require
+neighborhood searches due to the approximate nature of the predictions and are less accurate for highly
+scattered data. In their paper on learn Index, the authors show
+that they achieve significant improvements
+in lookup speed, transforming typical
+logarithmic operations to near constant time. Memory efficiency
+is also improved by the elimination of
+redundant pointers and nodes. Lastly, even with simple
+linear regression models, they observe high
+prediction accuracy for both point and
+range queries.
+
+>> Let's next look at how
+to use neural networks to handle more complex non
+linear data distributions. The limitations of using a
+regression model becomes apparent when we deal with non linear data patterns
+like the one shown here. Linear models struggle to
+accurately map intervals that expand exponentially
+prompting the need for a more complex
+machine learning model. Real world data sets often have complex non
+linear relationships. For example, customer
+purchase behaviors, seasonal patterns, and geographic data
+distributions often show nonlinear non uniform trends where linear regression
+models fall short. Neural networks offer a powerful alternative
+for capturing non-linear relationships through multiple
+layers and neurons, significantly enhancing the predictive capability
+of the models. We next introduce an abstract model class
+for learned indices, defining a general interface for training and
+prediction operations. The simple neural
+network class is a simple single layer
+neural network model. It includes input and
+output weights and biases and defines a set number of neurons in the hidden layer. The network structure includes a single input layer
+neuron for the key, a hidden layer with 10 neurons, and an output layer
+with one neuron for predicting the
+position of the given key. Training a neural
+network involves first normalizing
+the input data, followed by a series of
+forward and backward passes to adjust the weights and
+biases based on the given data. In the forward pass, we calculate the hidden
+layer outputs using the sigmoid activation function and sum the outputs
+for final prediction. In the backward pass, we adjust the weights
+and biases based on the error between the predicted
+and actual positions. We train over multiple
+training epochs with a fine tuned learning rate to increase the model's
+predictive accuracy. Each key is first normalized
+by dividing the key by the maximum key value and converting it into a range
+between zero and one. This step ensures
+balanced training and prevents issues with scale in
+the network's activations. For the hidden
+layer, each neuron calculates its output using the normalized key x associated
+with w_ij and bias b_j. So the formula used is
+shown in this slide. From the hidden to
+the output layer, we compute the final
+predicted position by summing the outputs
+of the hidden neurons, adjusted by their respective
+weights and the output bias. Here, h_j is the output
+of the hidden neuron j, and w_ij is the weight from the hidden neuron
+j to the output, and b_o is the output bias. The loss function used in training our model
+is shown here. It calculates the mean
+squared error between the predicted positions and the actual positions
+of the keys. Our goal during training is to minimize the
+loss function, ensuring that the
+predictions are as close as possible
+to the true values. In this slide, we present an iteration in the
+training process. We start by normalizing the key. So for a key of 10 in a
+range up to 1000/500, the normalized value
+would be 0.0067. We assume small initial values
+for weights and biases, both set at 0.1 to begin
+training in a controlled manner. The output of the first
+hidden neuron h_1 is calculated using the
+sigmoid activation function to be 0.525. This neurons output
+is part of a set of hidden layer outputs that is used to predict the position. Let's suppose that the
+predicted position is 0.5. If the actual position of
+key 10 is at offset 0, then the loss is
+0.5-0^2, which is 0.25. To improve the model, we do back propagation to adjust the weights and biases based
+on the calculated loss. This involves
+computing the gradient of the loss function
+with respect to each weight and bias and then making adjustments
+to reduce the loss. Similar to what we did
+with regression models, we can construct a recursive model index using
+neural networks. Here, the root neural
+network model will select the appropriate submodel to next use while looking up a key. The benefits of using neural networks in
+a learned index is that they are flexible in handling non linear
+data patterns. However, unlike simple
+regression models, neural networks
+require careful tuning of parameters such
+as neuron count, learning rate, and
+training epochs, and they consume
+more memory due to the complexity of their
+network structures. To recap, in this lesson, we focused on building
+learned indices using regression and
+neural network models. Unlike B plus trees, learned indices can
+support faster lookups, use less memory, and adapt dynamically to the underlying
+data distribution. Learn indices exemplify how integrating
+machine learning into database systems can lead to substantial improvements in
+performance and scalability.
+
+>> In this module, we
+explore a variety of advanced indexing
+structures tailored to specific query types. We began with tries, exploring their
+unique structure for efficient prefix-based
+string matching queries. Next, we looked at
+inverted indexes, which are fundamental for
+full tech search engines. We covered how they allow fast keyword searchers across
+large document collections. We also examined RTrees, a spatial indexing
+structure tailored for multidimensional data like
+geographic coordinates. We learned about
+how RTrees organize data into hierarchical
+rectangles, enabling efficient range and nearest neighbor queries
+in spatial databases. We then discussed about
+learned indices that use machine learning
+models to predict key positions
+within sorted data. We discussed about how this
+approach can reduce indexing overhead in read heavy databases by leveraging the data
+distribution patterns.

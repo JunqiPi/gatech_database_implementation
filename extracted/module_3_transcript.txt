@@ -1,0 +1,310 @@
+In this module, we will introduce
+the buffer manager that improves performance
+by minimizing costly disk IO operations. We will discuss about
+how the buffer manager maintains a cache of frequently
+accessed pages in DRAM. We will then explore cache
+eviction policies which determine which page to evict from memory to disk when
+the buffer is full. We will learn about
+the buffer pool flodding problem with
+sequential scans and present the two Q policy that avoids the buffer
+pool flodding problem.
+ 
+ 
+In this lesson, we will introduce a buffer
+manager that improves performance by
+maintaining a cache of frequently accessed
+disk pages in DRAM. We will then learn about cache
+replacement policies which determine which page to evict from the buffer
+pool when it is full. Disk IO operations
+are time consuming. Axing data in memory typically takes around 50 nanoseconds. However, axing a page on an SST is very slow and takes
+around 50 microseconds. So axing data from an
+SST is roughly 1,000 times slower than axing
+data from memory. When we look at cost, DRAM is super expensive. It costs around $10 per GB. In contrast, SST costs
+around $0.10 per GB, so it is important to
+minimize diskIO operations. To minimize disk operations, it is crucial to cache frequently accessed
+pages in memory. The buffer manager is responsible for
+caching these pages. The buffer manager is
+crucial for bridging the gap between fast but limited DRAM and slow but vast disk storage. The storage manager handles low level disk storage
+operations like reading, writing, and extending
+the database file. The buffer manager collaborates
+with the storage manager to load data into memory
+on demand and to flush, modify data back to disk. In this slide, we will look at the implementation of the
+buffer manager in buzz DB. The buffer manager uses the storage manager to load
+and flush pages to disk. It maintains a list of pages
+in the in memory buffer, along with their page IDs. LRU list is a list of pairs containing a page ID and a unique pointer
+to a slotted page. It also maintains a map for quickly looking
+up pages in LRU list. This is an unordered map in C
+plus plus that maps page ID through an iterator pointing to the corresponding
+entry in LRU list. Get page is the method used for retrieving a page using
+the buffer manager. It takes a page ID
+as input and returns a reference to a unique
+pointer to a slotted page. This method is used by
+other components of BS DB to get pages into memory. If the requested page
+is not in memory, it would typically involve
+loading the page from disk, possibly evicting another page in the buffer pool
+if it is full. When the in memory
+buffer is full, the buffer manager must evict a page from the
+buffer pool to disk. This LRU policy dictates which page is the first to be evicted when the
+memory buffer is full. We use the least recently
+used or LRU eviction policy. This policy evicts the page that was least recently accessed. This diagram illustrates
+the LRU policy. In the initial state, the
+cache holds four pages. When page two is accessed, it is moved to the most
+recently used position. Subsequently, when
+a new page F is accessed and there is no
+more space in the cache, page six, which is
+the least recently used is evicted to make
+room for page five. The LRU policy assumes
+that pages that are not accessed recently are less likely to be
+accessed again soon. As we discussed earlier, each page has a unique page ID. The LRU list stores the currently loaded
+pages in LRU order. The page map maps page IDs to their locations in
+the AAU list to allow quick access to
+any page in memory. When a page is requested
+and not found in the cache, the buffer manager calls the storage manager to
+load that page from disk. After loading, the
+page position in the LRU list is updated
+using the touch method, which moves the page to
+the front of the list, marking it as most
+recently used. The buffer manager leverages the storage manager to abstract away the complexities of
+disk storage operations. It only focuses on maximizing cache hits to minimize
+disk IO operations. In the touch method,
+whenever a page is accessed, its position in the AAU list is updated to reflect
+its recent use. This is done using
+the splice method, which efficiently moves
+the accessed page to the front of the list, marking it as the
+most recently used. The EIC method is responsible for removing the least recently
+used page from the cache. Evicted page is located at
+the end of the AAU list. Before eviction, it is
+flushed to the disk using the storage manager
+to ensure that no changes made to
+that page are lost. It is then removed from both the page map and the AAU list, freeing up space for a
+new page in the buffer. Overall, this tagram illustrates the process flow of the buffer manager while
+handling page requests. Initially, it checks if the requested page
+X is in memory. If the page is present, then the buffer manager
+updates the AA list to mark the page as recently
+accessed before returning it. If the page is not in memory, then the buffer manager
+loads it from disk, updates the AA list, potentially evicting the
+least recently used page if the cache is full and then returns the
+newly loaded page. By adding a buffer manager, busdB handles all page
+related operations through this new class without directly interacting with
+the storage manager. Here, we retrieve
+a specific page using the get page method and then perform an
+insertion operation on that page using the
+At tuple method. This design improves
+the modularity of BSDB. In this lesson, we introduced
+a buffer manager that improves performance by minimizing costly
+disco operations. We then discussed about the
+LRU cache replacement policy and how it caches recently
+accessed pages in memory.
+ 
+ 
+In this lesson, we will present
+a policy interface that allows different
+eviction policies to be implemented
+in the same way. We will learn about
+the importance of separating policy from
+mechanism in system design. The policy interface
+serves as a template for implementing different cache eviction
+policies in BSDB. It is an abstract base
+class with a set of virtual functions that must be implemented by any class
+inheriting from policy. The touch and evict
+functions are the essence of any
+cache eviction policy. The touch function
+is responsible for keeping track of page aces. The evict function
+is responsible for selecting pages
+for eviction. Let us look at implementing another cache eviction policy using this policy interface. The FIFO policy simply evicts the oldest loaded page based on its arrival time
+into the buffer pool. In this snippet, the FIFO policy is derived from the
+abstract policy class. The touch method appends the accessed page to a que only if it is not
+already in the queue. Unlike the LRU policy, it does not update
+the location of the page within the queue to
+indicate its recent axis. The override keyword
+indicates that this method is overriding the virtual
+touch function in the base policy class. The AC method selects the page
+at the front of the queue, which is the oldest
+page in terms of when it was last touched. This picture illustrates
+the FIFO policy. The cache is shown in its starting condition with a set of pages already loaded. The most recently added
+page label indicates the last page that was added to the cache following
+the FIFO principle. After axing page two, the cache state remains unchanged as page two is
+already in the cache. FIFO does not reorder pages
+based on access recency. After axing page five, because the cache is full, the FIFO policy dictates
+that the oldest page seven must be evicted to make
+room for the new page five. While it is simple,
+the FIFO policy is not effective on
+real workloads as it evicts recently
+accessed pages just because they were added
+earlier into the queue. In contrast, the AAU policy prioritizes pages that have
+been accessed recently. In this snippet, the AAU policy also derives from
+the policy class. It maintains a list to
+keep track of the order of page access and a map
+for quick page lookups. By keeping recently
+accessed pages in memory, the AAU policy is better than the FIO policy at keeping more
+important pages in memory. The buffer manager includes a pointer to the policy object, allowing for dynamic selection of eviction policies at runtime. With this design, we can
+even update the policy based on the workload without changing the rest
+of the buffer manager. In the get page
+method in bus DB, the touch method of
+the current policy is invoked whenever a page is accessed to update the
+state in the policy object. If the buffer size
+limit is reached, then the evic method of
+the current policy is invoked to determine
+which page to remove. In Bz DB, the
+distinction between policy and mechanism
+is important. In fact, policy
+uses mechanism is a fundamental concept
+in system design. Policies determine what
+action should be taken while mechanisms determine how these actions are executed. This separation allows
+us to switch between different policies without overhauling the
+underlying mechanisms. In the buffer manager,
+the case eviction policy decides which payers to evict
+based on some criteria. While the mechanism handles the operational details of
+writing the page to disk. Here's another example based on index maintenance to illustrate the difference between
+policy and mechanism. Lazy updates represents
+a policy where the index is updated at
+predetermined intervals, such as every 5 minutes. This method can
+enhance performance because updates are batched and processed less frequently, reducing the overhead of each
+individual write operation. However, the downside is
+that the index may be temporarily out of date between updates
+leading to stale data. Eager updates on the other hand, involves updating
+indices immediately as the data changes. This policy ensures that
+the index always reflects the most recent data supporting accurate and
+fast query responses. The trade off here is
+higher write latency as every data modification requires an immediate update
+to the index, thereby increasing the time
+taken to do write operations. Regardless of whether the lazy or eager update
+policy is chosen, the mechanism is the same
+for updating the index. The mechanism describes the
+underlying infrastructure for executing these policies. It manages the technical details of how the index is updated based on whether the index is an ordered map or
+another data structure. This separation
+between policy and mechanism allows
+the system to adapt its index update policy without altering the mechanism that
+manages the index structure. To recap, in this lesson, we discussed about the
+policy interface and the importance of separating
+policy from mechanism. As a systems developer
+or systems researcher, it is important to pay
+more attention to policies as they are more likely to stand the test of time
+compared to mechanisms.
+ 
+ 
+In this lesson, we will first present the Buffer
+Pool flooding problem. Even with the LAU policy, when the database performs
+a sequential scan, the scan can potentially
+flood the buffer pool with less important pages that might not be
+needed afterwards. We will then present
+the two Q policy that tackles this Buffer
+Pool flooding problem. Sequential scans
+occur when a database reads through every page of
+a table to answer a query. This typically
+happens when there is no index to avoid scanning
+through the entire table. In this example, if there is no index on the
+sale date column, the database needs to
+check every tuple in the sales data table to see if it falls between those dates. Sequential scan is problematic
+because it can lead to loading many unimportant pages
+into the in memory buffer. Both FIFO and AAU policies struggle with sequential scans. FIFO evicts the oldest page from the cache regardless of
+its current utility, removing important
+pages to make space for all the pages needed
+during the sequential scan. More interestingly,
+the AaroPolicy also evicts hot
+pages to accommodate cold pages that are
+accessed during the sequencial scan just because they are
+recently accessed. Consider this page access trace to understand the buffer
+pool thudding problem. Let's assume that the buffer Pool capacity
+is three pages. The goal of this analysis
+is to understand how different caching
+policies handle this page access trace and
+evaluate their efficacy. To measure the
+policy's efficacy, we look at the number
+of cache measures where the requested page is not found in the buffer pool necessitating a slow
+fetch from disk. On this trace, the FIFO policy evicts hot pages
+like pages 1 and 2, which are repeatedly evicted
+and then accessed again. Let's next look at
+the AAU policy. On this trace, the AAU policy also evicts hot pages
+like pages 1 and 2, due to the sequence of scan, leading to ten cache misses. The two Q policy addresses this challenge by using
+two separate queues, a PF Q for read one's pages
+that are accessed during a sequential scan and a separate LRU queue for
+frequently accessed hot pages. Pages initially land
+in the PF Q and upon second access get
+promoted to the LRU Que. While evicting pages, the two
+Q policy first removes read one's pages in the FF Qu thereby not removing the important
+pages in the buffer pool. This code outlines how the page promotion works
+in the two Q policy. Pages initially
+enter the F for Q. Upon second access,
+they get promoted to the LRUQ recognizing their
+increased importance and frequency of access. When a page is accessed, if it is already in the LRUQ, then its position is updated to indicate that it was
+recently accessed. This approach ensures that frequently accessed
+pages are in the LRUQ. Here in the touch method, when a page is accessed, we first check the FFQ. If the page is in the FFO Q, it is removed from the FFQ
+and pushed to the front of the LAUQ to reflect its
+higher reuse probability. If a page already resides in the LAUQ and is accessed again, then it is moved to the front of the Q to mark it as the
+most recently used. This update ensures that the most recently used pages in the LAUQ are the
+last to be evicted. If the page is not
+in both queues, it's time to check if
+the cache is full. Each page ID can only exist in the P for
+Q or D Lara ques. The same page ID cannot
+be in both queues. So we calculate the
+sum of the size of the two Ques to check
+if the cache is full. If the cache reaches
+its capacity, then the EVC method is
+triggered to make space, and the newly added page
+is added to the FFQ. The two Q policy prioritizes evicting pages from the FF Q. This is how it avoids the
+buffer pool flooding problem. By targeting read one's
+pages in the P for Q first, it retains pages with higher reuse probability
+in the cache. If the P for Q is empty, that means that all the
+pages are in the LRUQ. In this case, it evicts the least recently used
+page from the LRUQ. So there are two cases. If the FFQ is not empty, then the oldest page, the one at the front of
+the FFQ is evicted first. This action targets read one's pages that are unlikely
+to be accessed again soon. If the FFO Q is empty, then the least
+recently used page at the back of the
+LRUQ is evicted. This step is taken only
+when the PIF Q is empty, as all the pages in
+the LRU are hot. In this way, the two Q
+policy cleverly combines the FIFO and LRU Q to reduce cache pollution
+from sequential scans. Let's revisit the
+page access trace with the two Q policy. Initially, pages 1 and 2 are accessed and
+placed in the F for Q. When page one is accessed again, it moves to the LRUQ signaling
+its increased importance. At any point in time, the
+total number of pages in both queues must be less than or equal to the
+buffer pool size. A page can only be
+in either the P for Q or the LRUQ not in both
+queues at the same time. Overall, the two
+Q policy ensures that hot pages like pages 1 and 2 stay protected in the LRUQ and results in only
+six cache misses. Besides FIFO LRU and two Q, there are other cache
+eviction policies. East frequently used or LFU keeps frequently
+used pages in memory. LFU's major limitation
+lies in its lack of responsiveness to recent
+changes in access patterns. As it prioritizes
+frequency over recency, LFU may keep pages that
+were frequently accessed in the past but are no longer relevant leading to sub
+optimal cache utilization. Adaptive replacement cache or ARC is another
+interesting policy. ARC dynamically balances between LRU and LFU based on
+the observed workload, adapting to changing
+page access patterns. It uses a self tuning mechanism that adapts the sizes
+of its two lists, one list for recency, another list for frequency. The main challenge with ARC is its implementation
+complexity. So far, our discussion of cache eviction policies
+has been a bit abstract. Let's consider a music
+streaming application to better appreciate
+these policies. In this application, the
+cache is a limited list of recommended songs
+that is dynamically updated based on the
+user's listening habits. In this case, the LRU policy would end up recommending
+songs that you have played recently
+and removing those that you haven't
+listened to recently. In contrast, the two Q policy strikes a balance between
+favorites and new discoveries. It is best for users whose listening preferences
+evolve over time. The two Q policy initially
+places new songs in a fee for and moves them to
+LRUQ if you play it again, thereby optimizing
+the cache to include a mix of both familiar tunes
+and potential new hits. To recap, in this lesson, we discussed about the buffer
+pool flooding problem by sequential scans and how the two Q policy
+tackles this problem. By categorizing pages
+into read ones and hot pages and managing
+them in separate queues, the two Q policy
+maximizes cache utility.
+ 
+ 
+In this module, we presented
+the Buffer manager class. The Buffer manager class
+allows Bz DB to handle all page related
+operations through this new class without directly interacting with
+the storage manager. We then discussed about how different cash eviction policies determine the performance
+of the buffer manager. We learned about the distinction between policies and mechanisms. We then focused on how the two Q policy minimizes
+cash pollution by categorizing pages
+into read ones and hot pages and managing
+them in separate queues.

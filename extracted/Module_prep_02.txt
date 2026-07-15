@@ -1,0 +1,324 @@
+>> In this module, we
+will introduce BuzzDB, the database system that we'll be building
+in this course. We will start with a
+basic BuzzDB prototype and gradually expand the functionality
+of database system. We will dive into
+why we'll be using the C++ programming language
+for building BuzzDB. We will then
+introduce the idea of transactions in a
+relational database system.
+
+>> We will be using the C++ programming
+language to build BuzzDB. BuzzDB is our
+semester-long project designed to introduce the key components of
+a database system. We will start from scratch and gradually extend the
+functionality of database system. We will later discuss
+about why we are actually using C++ to
+build the database system. By the end of the semester, you should understand the key components of a database system. In BuzzDB, our basic data
+unit is the tuple class. A tuple maps to a row
+or a record in a table. You can think of it as a simple structure holding
+a pair of elements, a key column, and
+a value column. The key serves as an
+identifier like a customer ID. The value column holds the
+data associated with that key, like the amount associated with a transaction made
+by that customer. Let's next talk about
+classes in C++. A class is like a blueprint
+for objects designing what data they contain and what operations can
+be performed on them. Here's an example
+of a book class. In the book class, we
+keep track of the title and the author of each
+book in class variables. The book class has
+a method called display info for displaying
+the details of the book. This encapsulation of data
+and functionality in a class is an important idea in object oriented programming
+languages like C++. Each instance of the book class is known as a book object. We can create objects as shown here and set the attributes of the object attributes like the title and the author
+or properties of the book. So they are similar to
+columns in a table, methods or actions that
+an object can perform, like the display
+in for method for displaying the object's
+title and author. Classes are super important C++. They allow us to
+neatly organize or package data along with the functions that
+operate on that data. This makes our code more modular and enhances code reusability
+and code maintainability. Using classes, we can
+create complex data types, like the book type by combining
+variables and methods. Encapsulation is
+an important idea in object-oriented programming. It helps protect access to the attributes and
+methods of a class. There are two types of access specifiers,
+public and private. Public members are accessible from outside the class
+by other classes. Private members are only accessible from
+within the class. Encapsulation allows us to hide the internal state and
+implementation details of a class from the
+outside world while providing a controlled interface for interacting
+with that object. We can break the database
+system into smaller, more manageable classes,
+thanks to encapsulation. Each class encapsulates
+its own data and methods, making it easier to
+understand and maintain, thereby improving the overall modularity of the
+database system. At the hoped of our database
+system is the BuzzDB class. This class stores tuples
+using a vector container in C++ and indexes the tuples
+using a map container. We will discuss about
+these containers soon, but before that, a quick
+note about BuzzDB. We will be sharing
+all the versions of BuzzDB in a Github repository. You will need to set up a
+C++ development environment on your laptop to play
+around with this code. Let's next look at the vector
+and map containers in C++. A vector is a dynamic array that can automatically
+resize itself. It is a part of the
+C++ standard library. In std vector, std refers to the standard
+template library, also known as stl in C++. A vector can grow
+or shrink in size automatically when elements are added or removed
+from the vector. Vectors are very versatile. They can store any type of object and provide random
+access to elements. In BuzzDB, we use a vector to
+store and retrieve tuples. Here, we are adding
+two tuples into the tuples vector and displaying the elements of these
+tuples in a for loop. Map in CplusPlus is an associative container
+that links keys to values. A map is similar to the
+contacts app in a phone where each person's name is
+mapped to a phone number. Building this map allows us to quickly find a person's
+number using their name. In this code snippet, we are building a map
+container with two mappings. We are mapping the key
+apple to the value Phi. We are then mapping the key
+banana to the value 10. After building this
+data structure, we can print the value
+associated with the key apple, and that would print Phi. The std map container
+in C++ ensures that each key is unique and keeps the keys
+in a sorted order. This is similar to the
+contacts app where two names cannot be identical and the names are added
+alphabetically. In our index, we want to associate multiple
+values with a key, so we declare the index as a map container where
+the key type is an integer and the value type is actually a
+vector of integers. In this way, the
+map container is used as an index in
+a database system. The index is helpful for quickly retrieving the values
+associated with a key. For instance, in
+this code snippet, when we print the index
+using a four loop, we see that Key 1 is associated
+with values 100 and 200, and Key 2 is associated
+with value 50. Let's next discuss about some important functions in BuzzDB. The insert function in BuzzDB adds new tuples
+to the database, updating both the main table
+vector and the index map. Updating the index is
+important to support fast retrieval of a specific
+tuple based on its key. As shown in this code snippet, we can create a
+BuzzDB database by repeatedly calling
+the insert method with different tuples. This builds a table upon which all our queries
+will run in BuzzDB. The aggregation query in BuzzDB sums up values
+associated with keys. This is similar to a
+group by clause in SQL. The select group by sum function actually performs the
+aggregation query. This method sums up the values
+associated with each key, allowing us to summarize
+the entire table. In this method, we go over each key in the index
+in the first for loop. In the second for loop, we iterate over all the values in the vector associated with that key in the index map and compute the sum of those values. After loading the
+database with data, we can run an aggregation query to sum the values for each key. The output of this
+program looks like this. The sum of values associated
+with Key 1 is 300, for Key 2, the sum
+is 50 and so on. In this way, even
+this basic version of BuzzDB can already perform
+useful data analysis. To wrap up, in this lesson, we presented how we can run an aggregation query using
+the BuzzDB database system. We also learned about
+several fundamental ideas in C++ like classes,
+vectors, and maps.
+
+>> In this lesson, we'll
+be diving into why we are using the C++
+programming language for building BuzzDB
+in the scores. We will particularly focus on its performance and hardware
+control capabilities. We'll be comparing
+C++ against Python to appreciate the
+benefits of using C++. C++ offers superior performance
+compared to Python. As a compiled language, C++ code is directly translated
+to machine instructions, which the hardware
+can execute without the need for an interpreter
+as in the case of Python. This direct
+translation results in faster execution times and more efficient
+resource utilization, both of which are critical
+in database systems. Let's consider a simple program. Let's calculate the sum of the first hundred
+million integers. Here, we are using
+the chronolibrary in C++ to measure the
+execution time of the loop. The high resolution clock
+marks the start and end times. The difference between
+these two timestamps, the diff gives us the total
+execution time in seconds. In C++, this function takes around 100 microseconds on a MacBook thanks to direct
+compilation to machine code. This type of
+performance profiling also allows us to pinpoint slow sections of a
+code and evaluate potential optimizations to
+speed up the overall system. Now let's do the same
+computation in Python. Performing the same
+operation in Python takes significantly longer,
+around 5.24 seconds. That's roughly 50,000
+times slower than C++. This difference highlights
+the overhead of Python's dynamic typing
+and interpreted execution, which while offer
+flexibility and ease of use can also lead to
+significantly lower performance. To better understand the
+performance difference between C++ and Python, let's consider an
+analogy from air travel. Imagine traveling from
+Atlanta to New York by air, which typically takes
+around 2 hours. Now, compare this to the time it would take to travel to Pluto. That approximately
+takes 9.5 years with the fastest spacecraft
+ever designed by NASA. So that's like
+40,000 times slower. This immense difference in
+travel time is comparable to the performance gap we observe
+between C++ and Python. C++ offers fine grained control over low level
+hardware resources, which allows us to finely tune the performance of
+the database system. This includes precise memory
+management and the ability to use multi-threading to manage multiple
+operations at once. These capabilities are essential for a high performance
+database system that needs to efficiently handle queries from multiple
+users at the same time. C++ comes with sophisticated memory management techniques. This snippet
+demonstrates how to use unique pointer for automatic
+memory management in C++. The allocate array
+function creates a unique pointer to an
+array of a given size. In the main function,
+we allocate an array of 1 million integers and initialize each element
+with its index value. We then print the value at
+the midpoint of the array. The key advantage of using std unique
+pointer here is that it automatically
+deallocates memory when the pointer
+goes out of scope, eliminating the need for explicit memory
+management with delete. So this makes the overall code safer and prevents memory leaks, which is a common issue in large software systems,
+like a database system. Smart pointers like
+std unique pointer, are a part of the memory module in the C++ standard library. We will learn more about smart pointers later
+in this course. Multi-threading is
+another powerful feature in C++ for hardware control. This example shows how we
+can create multiple threads to perform tasks at the same time using the
+C++ thread library. The print message function is a simple routine that prints a greeting from each thread identified by a
+unique thread ID. The main function initializes a vector to create and
+launch multiple threads. Specifically, we
+create four threads, each executing the
+print message function. After launching the threads, we ensure that they finish their execution by calling
+join on each thread. In database systems,
+multi-threading allows us for handling multiple queries from different users simultaneously. We will learn more about
+threads later in this course. C++ is a statically
+typed language, unlike Python, which means that variable types are
+known at compel time. This feature helps catch type
+pleaded errors early on, enhancing code stability
+and performance. For example,
+assigning a string to an integer variable results in a compiled time error in C++, preventing such mistakes from
+carrying over into runtime. In contrast, Python's
+dynamic typing allows flexible
+type assignments, but that can lead to
+unexpected runtime errors and also introduces inefficiencies
+in the overall system. So that wraps up this lesson. In this lesson, we
+discussed about why we are using C++ for
+building BuzzDB. We also looked at the performance and
+hardware capabilities of C++ and compare them against those
+capabilities of Python.
+
+>> Up to now, our focus
+has been on queries that are used to retrieve and summarize data without
+really modifying it. But what if we want to alter
+the data in the database? That's where
+transactions come in. In this lesson, we will introduce the idea
+of a transaction and the asset properties that a relational
+database system must support while processing
+these transactions. Queries like select, group-by, and sum only read the
+data in the database. They do not alter the
+data in the database. But what about situations where we need to
+change the data? That's where transactions
+come into play. Transactions are
+crucial for safely making multiple changes
+to the database. A transaction is a series of operations in a database treated
+as a single atomic unit. Transactions are
+crucial for tasks like transferring money
+between two bank accounts. Here, it is essential that actions such as debiting
+from one account and crediting to
+another bank account happen completely to
+finish the money transfer. The key idea of a
+transaction is that either both the debit and
+credit operations complete, or the entire transaction fails and no money
+is transferred. There should never be a scenario where money is debited
+from one account, but not created to
+another account. It is imperative that all parts of the transaction either
+complete fully or not at all. This is known as the
+atomicity property. Similar to how an atom is
+indivisible in chemistry, transactions are indivisible
+in database systems. Next, imagine a
+transaction transferring $100 from Account
+1 to Account 2. Transactions in SQL are initiated with the begin
+transaction command. The begin transaction command
+alerts the database system that the following operations should be treated
+as a single unit. The first update operation
+detects $100 from Account 1. The second update
+operation deposits the same amount to Account 2. The commit command is then used to finalize the transaction. This command is only executed if all the operations within
+the transaction succeed. If one of these
+updates fail due to issues like a power failure
+or network problems, the entire transaction
+is rolled back. This rollback prevents
+any incomplete updates, such as money being
+debited from Account 1 without actually being
+credited to Account 2. Next, let's imagine a
+scenario where two clerks are simultaneously processing
+deposit transactions to the same bank account. Clerk 1 starts a
+transaction to deposit $500 into an account with an initial balance
+of say $1,000. Clerk 2 also starts
+a transaction to deposit $300 into the same
+account around the same time. Without isolation, Clerk 2 might read the balance on
+the account as $1,000, the original balance before Clerk's 1 deposit is committed. Both clerks calculate
+the new balances based on the same original
+balance of $1,000, resulting in two
+separate updates, one setting the balance to $1,500 and another one
+setting it to $1,300. Depending on the timing
+and order of commits, one of the transactions result
+could override the other. For instance, if
+Clerk 2's transaction commits after Clerk's
+1 transaction, the account balance might
+incorrectly end up as $1,300 instead of
+the correct $1,800. If Clerk 1's transaction commits after Clerk
+2's transaction, then the balance might
+incorrectly end up as $1,500 instead of $1,800. In both cases, the
+balance is incorrect. The isolation property means that transactions
+should be executed in a manner where they
+are shielded from the operations of other
+concurrent transactions, particularly their
+intermediate states. Next, let's look at the
+durability property. Consider a scenario where
+a customer withdraws $500 from account and the bank physically
+dispenses this cash. Once the bank gives the
+money to the customer, it's crucial that the
+transaction record, the deduction of $500 from the customer's account does not disappear on
+the bank's side, even if the database system
+crashes for some reason. Durability guarantees that once this withdrawal
+transaction is committed, the updated balance is permanently recorded
+in the database. The database system ensures this by using a technique called
+write ahead logging, where the transaction details
+are first returned to a log stored on a durable disk before the transaction
+is marked as committed. This way, even if there is a system crash right
+after the transaction, the contents of the
+log on disk can be used to reconstruct the
+committed state of the database, thereby preventing
+any discrepancies between the bank records and
+the actual money given out. These four foundational
+asset properties ensure that database transactions
+are processed reliably. Atomicity guarantees
+that the transaction changes all or nothing, so you don't end up with only a part of the
+transaction completed. Consistency ensures that
+each transaction only brings the database from one
+valid consistent state to another consistent state. Isolation prevents
+transactions from interfering with each other, which is crucial for preventing data anomalies when multiple transactions
+occur simultaneously. Lastly, durability ensures that once a transaction is committed, it remains so protecting data integrity against
+system failures. Together, these asset
+properties provide a robust framework
+for data integrity and reliability in
+relational database systems. The term ACID was first coined by Andreas Reuter
+and others in 1983. Though these concepts were discussed as early as the 1970s, the development of
+these properties was motivated by the need for reliable data management
+that could support the complexities of
+multi-user environments. Over the years, the
+mechanisms for supporting asset properties
+have evolved with new hardware technologies
+and user requirements. To recap, in this lesson, we looked at transactions
+and how they are used to safely update data
+in the database. We also examine the
+asset properties that a relational
+database system must guarantee while
+processing transactions.
+
+>> In this module, we
+introduced BuzzDB and how we can run an aggregation query on the BuzzDB database system. BuzzDB is designed to introduce the foundational components
+of database systems. We looked at the performance and resource management
+capabilities of C++. We also learned about
+several key ideas in C++, like classes, encapsulation,
+vectors, and maps. We then discussed
+about transactions and the asset properties that relational database system must support while processing
+transactions.

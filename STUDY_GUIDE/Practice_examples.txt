@@ -1,0 +1,76 @@
+Practice Questions
+Note that you are welcome to discuss your attempts/answers among your classmates, but the teaching team won't provide help here until after the midterm is done. 
+
+Here are some questions:
+
+1. You’re using a 2Q buffer replacement policy with a 3-frame buffer pool.
+
+Current queue state:
+
+LRU queue (least-recent → most-recent): {1, 2}
+
+FIFO queue (oldest → newest): {5}
+
+The next page reference is 6. What are the queues after this access?
+
+A) LRU: {1, 2}, FIFO: {6}
+
+ B) LRU: {2, 6}, FIFO: {5}
+
+ C) LRU: {1, 2, 6}, FIFO: {}
+
+ D) LRU: {1}, FIFO: {5, 6}
+
+2. Based on the insights presented in the "What Goes Around Comes Around… And Around…" paper, which statement is not correct?
+
+A. Many NoSQL/document systems that originally rejected SQL later added SQL-like interfaces.
+
+B. The column-family (wide-column) model is a columnar data model tailored for OLAP.
+
+C. The authors argue that special-purpose vector DBMSs are likely to become unnecessary as RDBMSs add native vector types/indexes via their extensible type systems.
+
+D. Data lakes/lakehouses rely on open formats (Parquet/ORC) and typically add layers like Delta Lake, Iceberg, or Hudi for metadata and transactional updates.
+
+3. Why might one prefer using map over unordered_map in a database index?
+
+A. For average-case constant time complexity for operations.
+
+B. To support efficient range queries.
+
+C. To minimize memory usage for large tables.
+
+4.  Based on the "What goes around.." paper, while comparing Lakehouse against a classic database system like PostgreSQL, which statement is NOT correct?
+
+A. In a lakehouse, object-store commit latency limits write throughput, and frequent tiny writes create small-file bloat that requires compaction.
+
+B. A lakehouse keeps data in open formats on low-cost object storage and adds a metadata/table layer for ACID and time travel.
+
+C. Unlike PostgreSQL's enforced PK/FK constraints, lakehouse table formats often treat them as informational, so cross-table integrity is not guaranteed across engines.
+
+D. Because table formats bring ACID to object storage, lakehouses can outperform PostgreSQL on low-latency transactions.
+
+5. Bank transfer crashes after debit but before credit. Which ACID properties ensure no money is lost?
+
+A. Atomicity and Isolation
+
+B. Atomicity and Durability
+
+C. Consistency and Isolation
+
+D. Consistency and Durability
+
+6. Which of the following statements about ordering, indexing, and access path independence is incorrect according to Codd’s paper?
+
+A) Application programs should remain correct even if the order of records in storage is changed, since the order has no logical significance.
+
+B) The presence or absence of an index should not affect query results, but an application may still reference a specific index name for performance tuning.
+
+C) The logical correctness of an application should not depend on a particular tree or network structure used to access data.
+
+7. Which of the following statements about ordering, indexing, and access path independence is incorrect according to Codd’s paper?
+
+A) Application programs should remain correct even if the order of records in storage is changed, since the order has no logical significance.
+
+B) The presence or absence of an index should not affect query results, but an application may still reference a specific index name for performance tuning.
+
+C) The logical correctness of an application should not depend on a particular tree or network structure used to access data.

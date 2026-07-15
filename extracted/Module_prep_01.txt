@@ -1,0 +1,403 @@
+>> Welcome to CS 6422. This course is all about
+building database systems. In this lesson, I will discuss
+about the importance of database systems and why you might want to
+take this course. A database system is basically a software system designed
+for efficiently storing, retrieving, and
+manipulating data. Database systems are crucial
+across diverse sectors. In banking, database
+systems manage everything from accounts
+to transactions and loans. In the healthcare
+sector, database systems are used for maintaining
+patient records, treatment histories,
+and scheduling. The airline industry uses database systems for
+managing reservations, flight schedules, and
+customer relations. E-commerce platforms like Amazon utilize database systems to
+manage product catalogs, customer orders, and reviews. These examples illustrate
+the importance of database systems in modern
+digital infrastructure. So why should you consider
+taking this course? If you're curious about how major websites like Amazon
+and Google manage data, we will cover that
+in this course. We will learn about how
+database systems help build scalable web and
+mobile applications. We will figure out how
+database systems efficiently run complex queries over
+really large datasets. Lastly, if you're good enough to write code
+for database system, you'll be able to write code for any complex software system. Working on a database
+system exposes you to a wide range of
+computer science topics from storage management and query optimization to low level indexing structures
+and SIMD instructions. The scope of database
+systems is very extensive. This course will
+take you through many of these interesting topics that make database systems both a challenging
+and rewarding field.
+
+
+>> In this lesson, we will learn about the need for a
+relational database system. We will first look at an illustrative
+database application based on social media analytics. We will learn about how a simple flat-file
+database system is good enough to support this
+application's basic functionality. But we will then identify several critical limitations in a flat-file database system
+related to scalability, data integrity, and usability that motivate the need for a
+relational database system. So let's start with
+this application. Imagine we need to
+extract insights from social media
+data such as trends, sentiments, and
+user interactions. Now, we can organize the application's data using three simple flat text files. Users.text can include all
+the basic user information. Post.text contains details
+of all the individual posts, and interactions.text can
+record the interactions between the users and the
+post like comments and likes. This design is known as
+a flat-file database where the data is organized in a bunch of simple text files. Let's look at the text files. Let's start by looking
+at the users.text file. In this file, each line
+represents a user. In each line, there are two
+fields separated by a comma, the user's name,
+and their location. For example, we have entries
+like Timothee Chalamet from Paris and Lana Condor
+from Los Angeles. This simple flat-file
+format is straightforward, but as we will see
+later in this lesson, it has several limitations. Let's then look at
+the post.text file. The post.text file contains details of all the
+posts like post ID, username, and post content. Each post is tagged to a user. Entries in this file
+include posts like Timothee Chalamet's
+excitement about a new movie and Lana
+Condor's beach day. Interactions.text
+file tracks how users engage with post, documenting likes, and commands alongside the
+respective post ID. So it captures interactions
+such as likes by Liu Yifei and commands by Lana Condor connecting user reactions
+to specific post. This simple way of
+organizing data as a collection of files is known as a flat-file database system.
+
+>> Flat-file database system
+has several limitations. First, the flat-file database stores user information
+alongside each post, resulting in repeated user
+details for every post. For instance, Timothee
+Chalamet's multiple posts lists his name repeatedly
+wasting storage space. This renancy not only consumes
+unnecessary storage space, but also makes the data more
+prone to inconsistencies. Next, consider the scenario of deleting a record
+from users.text. As our application grows to accommodate
+millions of users, deleting a single record might require rewriting
+the entire file. This process can take significant amount
+of processing time, especially with large files. For instance, removing
+a single entry from a one gigabyte text file
+could take several minutes. Due to this slow operation, other users will experience delays when axing the database. For example, deleting
+a single entry from this file could
+take several minutes and that could actually lead to delays for other users
+axing the database. Next, let's say we
+want to retrieve a set of users from
+users.text file, such as users located in Mumbai. The only way to
+accomplish this is by sequentially scanning
+the entire file. This method is not only slow, but also highly inefficient, especially when dealing
+with large datasets. Let's look at the
+next limitation. Without coordination,
+simultaneous updates by multiple users to
+the same text file can result in data inaccuracies. Consider the following scenario. User 1 updates the
+name of the first user from Timothee Chalamet
+to Xavier Laurent. Meanwhile, User 2 updates the location of the same
+user from Paris to New York. Due to lack of synchronization, both updates can occur simultaneously resulting in
+the data being overwritten. As a result, the final
+state of this user becomes Xavier
+Laurent in New York, which does not map to
+the updates desired by both User 1 and User 2. So this is an invalid final
+state that is resulting from concurrent updates to the same text file
+from multiple users. Next, let's consider what happens when there is
+a hardware failure. Imagine a disk failure happens during an ongoing operation. For example, imagine a
+scenario where we are adding a country column to
+all of the user profiles, and that is a disk failure that interrupts the
+database update. Upon system restart, simply rerunning the database system
+isn't a viable solution. This approach could result in duplicate country
+columns for some tuples, leading to data inconsistency
+and potential errors. Let's look at the
+next limitation to ensure that the data is safe, even if there is a power outage, the data must be stored on disk. This is because DRAM, also known as memory,
+is not durable. However, disk is
+slower than memory, leading to slower queries
+and update operations. So to address this challenge, we will need to cache frequently accessed
+database pages in memory so that the number of slow disk operations is reduced. So effective memory
+management is critical to support fast
+database operations, but it is also crucial to maintain the consistency between the data in memory and the data on disk to
+ensure data integrity. A flat-file database does not really contain all of
+these optimizations, so that can lead to
+more memory conception and slow operations. Lastly, in a flat-file database, performing complex
+queries requires users to write custom code. For instance, extracting
+all the comments made by Lena Condor across all the post requires writing Python function,
+like the one shown here. Writing custom code for each query requires
+programming knowledge, and this might not be
+feasible for all users. Even for users who
+know programming, writing code is time
+consuming and error prone. So to conclude in this lesson, we began with an illustrative
+database application based on social media analytics. We then explored how
+a flat-file database is enough to support this application's
+basic functionality. However, we identified several
+critical limitations in this flat-file database
+system related to scalability and data
+integrity and usability, that motivate the need for a
+relational database system.
+
+>> In this lesson,
+we will introduce the idea of a relational
+database system and how relational
+database systems address the limitations of
+flat-file database systems. In 1970, Ted Codd, a computer scientist at IBM, introduced the idea of
+a relational database. His goal was to simplify data management and make
+it more accessible. A relational database
+is a new way to organize data as a
+collection of tables. Each table consists of a
+collection of columns and rows, similar to a spreadsheet. For instance, in the user table, each row corresponds
+to a user tuple, a user tuple contains all the attributes
+associated with that user. For instance, Lana
+Condor is located in LA. With a relational database, our social media
+analytics application would use three
+main tables: users, posts, and interactions. The term relation in
+relational database is derived from set
+theory in mathematics. A mathematical
+relation describes the relationship between
+sets of information. For instance, if
+we consider a set of students and a set of grades, the relation R links these sets. So the relation R tells us that Alice received
+a grade of B, Bob received a grade
+of A, and so on. Cots relational data model introduces two layers of design, logical design and
+physical design. Logical design is
+all about how we model our data as a
+collection of tables. This is what application
+developers interact with. In contrast, physical
+design concerns with how the tables are stored
+and indexed on disk. Physical design includes
+choosing the storage formats and choosing the indexing
+data structures to speed up data retrieval. Application developers do not need to worry about
+physical design. They only need to worry
+about logical design. Decoupling the logical and
+physical database designs offers significant benefits. Thanks to SQL, the
+standard query language for interacting with databases, users can perform complex
+data manipulation through simple SQL queries. So SQL abstracts the complexity of the underlying
+physical design, making it easier for developers
+to focus on what the data should do and not really
+how it is stored on disk. This separation of logical
+and physical database designs allows database
+administrators to optimize the backend storage and retrieval processes
+without impacting front end user interface
+or application logic. So this means that the
+database administrators can make improvements
+like changing the indexing strategies or
+upgrading storage hardware without disrupting the
+application's operation or requiring changes
+to its code. Let's next go over to important ideas in
+logical database design. Primary key and foreign key. The primary key is a
+column that serves as a unique identifier for
+each row in a table. By ensuring that each row
+is uniquely identified, the primary key helps prevent duplicate entries and enables
+efficient data retrieval. For example, in the
+user's table shown here, the user ID serves as
+the primary key that ensures that each user is
+uniquely identifiable. A foreign key is a
+column in one table that refers to the primary
+key in another table, establishing a link
+between the two tables. For instance, in
+the posts table, user ID acts as a foreign key that connects each post to
+a user in the user's table. Foreign key is fundamental for ensuring the integrity
+of the data. For example, there cannot
+be a post posted by a user whose information does not exist in
+the user table. This property is known as
+referential data integrity. Together, primary
+and foreign keys form the backbone of
+logical database design.
+
+
+>> Let's next discuss about how a relation
+database system addresses the limitations of
+a flat-file database system. In the relational model,
+user details are stored once in the user's table with post referencing
+the user's by ID, thus eliminating
+data redundancy. For example, all
+the posts made by Timothee Chalamet only
+contain his user ID, thereby conserving
+storage space. Now, let's say we need to update Timothee Chalamet's name
+to Sir Timothee Chalamet. With a relational database, it is easy to update his
+name by just updating a single row in the user's table instead of updating all the rows
+in the post table. The next benefit of a
+relational database is that deletion is
+quick and efficient. For example, deleting a user is simply a matter of removing a tuple from a table without impacting the
+rest of the database. So the deletion operation takes only a few milliseconds
+to finish, and does not really disrupt
+the queries from other users. Relational databases
+also support fast queries by
+indexing the database. So let's discuss a little
+bit about indexing. Think about your smartphone
+filled with hundreds of apps. Without organization, finding a specific app by swiping through all
+the screens is hard. Now imagine organizing
+all these apps into folders like social, games, and work. This setup allows you to
+quickly access what you need, and in the same way, we could actually build
+a location based index for speeding up our queries. By organizing the user's
+data through indices, we can have a query like SELECT* from users where
+location is Mumbai, and that query executes
+really quickly. This is because the database
+system directly access the relevant users from Mumbai without scanning
+through all the users. Indexing is very important for querying large datasets quickly. Let's look at the next benefit of using a relational
+database system. Relational databases
+are designed to handle multiple users updating
+data at the same time. And this is accomplished through the idea
+of transactions. Each transaction ensures
+that all the updates made by user are fully processed before the next
+transaction begins. The database system uses a
+concurrency control protocol to ensure that
+these transactions do not interfere
+with each other. So let's revisit the same example to better
+understand this. Imagine two users
+updating the same data. User 1 changes the name of the user from Timothee
+Chalamet to Xavier Laurent. At the same time, User
+2 attempts to change the location of Timothee
+Chalamet from Paris to New York. The final outcome, whether it's Xavier Laurent in Paris or
+Timothee Chalamet in New York, depends solely on the order in which these transactions
+are processed. What's important to note here
+is that the situation of Xavier Laurent in
+New York can never arise here with a
+relational database system. So the concurrency
+control protocol is crucial for maintaining data consistency across
+concurrent database transactions. In a relational airbase, transactions are atomic, and that helps in
+handling failures. This means that they operate under an all
+or nothing principle. Either the entire transaction
+is completed successfully, or if any part of the
+transaction fails, none of it takes effect. This is crucial for
+preventing partial updates that could lead to
+data inconsistencies. And to manage this,
+the database system uses a logging and
+recovery protocol. So when a transaction
+is initiated, all the changes are
+logged to a file on disk, and if a transaction encounters an issue and cannot
+be completed, the database system
+uses the log changes on disk to revert all of them back to the last
+consistent state. This ensures that
+the database remains accurate and reliable even
+in the event of a failure. Let's revisit the
+example involving adding a country column
+to the user's table. If a power failure occurs
+during this update, the entire transaction
+will be rolled back. This means that none
+of the changes, including those made to
+Timothee Chalamet or Lana Condor or Liu Lifei will be retained
+in the database. Relational databases
+cache frequently access data in memory, as shown in steps 1 and 2. So this happens when
+reading data from disk. Similarly, when writing
+data back to disk, the database system uses a transaction log on disk
+to synchronize changes between the cached and
+disk resident data as shown in steps 3, 4, and 5. So this transaction log is stored in a
+separate location on disk and helps maintain
+data consistency. So in this way, a
+relational database system does efficient
+memory management. Let's look at the last benefit of using a relational
+database system. SQL allows users to perform complex data
+retrieval operations using simple readable queries. For example, retrieving
+all the comments made by Lana Condor is straightforward
+using this SQL query that operates on the posts
+and interactions table. This approach eliminates
+the need for custom coding, drastically reducing the time
+and potential for errors. Users can focus on
+the data that they need and not really on how to programmatically
+retrieve it. This is why SQL is a
+declarative query language, unlike imperative languages
+like Python and C++. In this lesson, we
+discussed about the idea of a relation database system and
+explained about how a relation database
+system addresses all of the limitations of a simple
+flat-file database system.
+
+>> In this lesson, we will
+explore relational operators and their role in supporting
+complex SQL queries. Relational operators
+are functions that operate on tables also
+known as relations. So they take in one
+or more tables as input and yield a
+single table as output. Commonly used
+relational operators in SQL are the select operator, the where operator, the group by operator, and
+the sum operator. Each operator has a
+specific function. The select operator allows us to specify and retrieve a subset
+of columns from a table. The where operator allows us to filter the rows based
+on some conditions. The group by operator helps organize the rows
+into relevant groups, and the sum operator
+helps aggregate numerical data
+within these groups. Let's go over these operators
+in detail as we will later support these operators in the database system that we'll be building
+in this course. The select clause in SQL
+is also formerly known as the projection operator and is denoted by the
+Greek symbol Pi. The projection
+operator is used to select specific
+columns from a table. So this operator
+is useful when we only need to retrieve
+certain fields from a really wide table. For example, we could select location of all the users
+from the user's table and focus our data extraction on just those columns
+necessary for our analysis. The where clause in
+SQL is also known as the selection operator and is denoted by the
+Greek symbol Sigma. The selection operator
+allows us to filter rows based on some
+specific conditions. For example, to find all the interactions in the interactions table
+that are labeled as likes, we could use this query
+where the where clause is filtering based on the
+reaction type column. The grouping operator
+is used to group rows, sharing the same values
+into these aggregate rows. So this operator is
+often used along with aggregate functions like sum or count for summarizing data. For example, this query
+counts the number of reactions that
+each post received. So we are grouping the
+posts based on post ID, and that allows us
+to provide insights into the engagement
+received by each post. The next operator
+that we will look at is the aggregation operator or the sum operator
+that is used for performing quantitative
+analysis on the group data. This operator is denoted
+by capital Sigma. For example, this query aggregates the number of
+post made by each user. It adds together
+all the values in a specific column for each group as defined
+in the group by clause. By aggregating values in
+a column for each group, we can derive useful insights about the overall
+data distribution. The last operator
+that we will look at is the join operator, which is very important
+in relational databases, as it helps combine information from two or more tables based
+on a specified condition. So this is the join symbol. Consider this query
+that is used for finding the total engagement
+received by each post, along with the content
+of the post itself. So here, the join operator
+is used to link together the pose and interactions
+tables based on post ID, and that allows us to access the columns in all
+of these tables. Let's next discuss briefly
+about relational algebra. Relational algebra provides
+a theoretical foundation for manipulating tables using
+operators like selection, join, and group by. By applying these
+operators in a sequence, we can efficiently filter, aggregate, and connect data. This methodolical approach
+underpins SQL operations, ensuring that complex
+data relationships are handled with
+precision and clarity. The power of SQL comes
+from relational algebra, where we combine these
+relational operators to derive insights from data. So consider this
+illustrative query for finding the post
+with the most likes, along with the users
+who like that post. This query uses several
+relational operators. We filter the interactions to include only those that
+are like reactions. We then join the
+interaction table with the users table
+to link each like reaction to its respective user. The query then groups
+the results by post ID, aggregating information
+such as the number of likes and the users
+who liked each post. We then project only the
+necessary fields like post ID, the number of likes, and a concatenated string
+of user IDs and user names. Lastly, we sort the post
+and limit it to one row to identify the
+most popular post and the users who liked it. So the query result might
+look something like this. Here, the most popular
+post is Post 1002, which was liked by three users, and the names of those users is listed below as a
+concatenated string. So in relation to algebra, this query can be
+expressed as shown here. The selection
+operator Sigma first filters the interactions
+for like reactions. The output table is joined with the user's table to associate the likes to specific
+users based on user ID. The output is then grouped by post ID using the Gamma symbol. This grouping also counts
+the likes for each post, and concatenates the
+user IDs and user names, providing insights into the
+users who like that post. We then project out the
+required columns to be displayed in the
+final output table that's represented
+by the Pi symbol. And lastly, the sorting operator Tau is used to order the post in descending order
+of popularity to identify the
+most popular post. This breakdown shows
+how each component of the SQL query corresponds to a specific relational
+algebraic operator. After this lesson, I hope you have gained a deeper
+understanding of how powerful SQL can be in analysing data with
+relational operators. We explored how different
+SQL query components map to relational algebraic
+operators and how they can be combined to construct
+complex queries in a relational database.

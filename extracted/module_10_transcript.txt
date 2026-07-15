@@ -1,0 +1,331 @@
+In this module, we will explore advanced operators that enable complex query
+processing in Bus DP. We will start by supporting more complex predicates with both comparison and
+logical operators. Next, we will introduce the
+hash aggregation operator, which groups data based
+on hash values and applies aggregate functions
+like some over those groups. We will then examine
+complex queries where we compose multiple relational
+operators in a pipeline. We will then look at the
+create index operator, which builds an index on a specified set of columns
+to speed up queries.
+
+>> In this lesson, we will improve the
+predicate class to support more complex
+query conditions. Database applications
+often need to logically combine predicates based on multiple columns
+for filtering data. We will design a predicate
+interface that enables such combination of simple
+and complex predicates. Our current predicate
+class is limited to evaluating simple direct
+conditions on tuple. Consider this employees table, this table has three columns, employee ID, salary, and age. We want to filter out
+employees who are less than 30 years of age
+and earn more than $1,000. To process this query, we need to support a more
+complex predicate that combines multiple
+simple predicates using a logical and condition. To standardize how
+predicates are handled, we introduce the
+IPredicate interface. This abstract base class
+provides a uniform way to create multiple types of predicates supporting both simple
+and complex conditions. Any derived predicate class must implement the check method, which evaluates the
+predicate against the fields of the tuple
+and returns a boolean. The simple predicate class implements the
+IPredicate Interface for basic comparison operators like equals greater
+than or not equal. For example, we can compare the salary column against
+a constant like $1,000. Let's look at the code. In the simple predicate class, the operands can either be direct values
+encapsulated within field objects or
+indirect references pointing to specific
+tuple fields. We have a comparison
+operator that determines how the check method
+compares the given operands. For queries requiring
+multiple conditions to be checked simultaneously
+over a tuple, we implement the complex
+predicate class. This class also implements
+the IPredicate interface, but combines multiple
+predicates using logical operators
+such as and and or. This approach makes it possible to evaluate multiple conditions. Let's look at the code. The complex predicate
+class has a vector of unique pointers to
+IPredicate objects. This means that
+each object can be a simple predicate or
+another complex predicate, allowing for dynamic composition
+of various predicates. The complex predicate class
+uses a logic operator to define the type of logical
+operation to perform. Based on this logical operator, we will evaluate the predicate
+in the check method. If the logical operator
+is an and condition like salary greater than
+1,000 and age less than 30, then the method
+returns true only if all the contained predicates independently evaluate to true. If the logical operator
+is an or condition like salary greater than thousand
+or age less than 30, then the method
+returns true if any of the contained predicates
+evaluate to true. This logical framework can support arbitrarily
+complex query predicates. Let's look at an example of constructing a
+complex predicate. Imagine a scenario where we need to filter tuples based
+on two conditions. The value of the first field
+must be greater than two, and the value of the first
+field must be less than seven. We begin by creating two simple predicates
+for these conditions. Next, we combine these two
+simple predicates into a complex predicate using
+the and logic operator. This complex predicate
+is then passed to the select operator for
+actual query processing. The select operator then
+filters out the relevant tuples where this overall complex
+predicate is false. We can construct even
+more complex predicates by combining predicates
+in multiple steps. Here we first combine two simple predicates
+using an and condition. We then combine
+that predicate with another simple predicate
+using an or condition. This is possible because both simple and
+complex predicates implement the same
+predicate interface. To recap, in this lesson, we discussed about extending the predicate class to support more complex query
+conditions using the I predicate interface and its derived simple predicate and complex predicate classes, we are able to handle
+arbitrary complex predicates.
+
+>> In this lesson, we
+will discuss about how to execute an aggregation
+query for summarizing data. In particular, we will go over the hash aggregation operator
+for doing this aggregation. Aggregation queries
+are useful for deriving high level
+insights about the data. For example, here is a
+query that calculates the total profit for each product category specifically
+for the month of June. The where clause in this query filters the tuples to include only those where the month
+part of the date is June. The month function extracts
+the month from a date. The query then groups
+the tuples based on Category_ID and then applies
+the aggregation function. In this case, summing the profit column
+for each category. To support such aggregation queries in our execution engine, we will add a hash
+aggregation operator in the next version of Base DB. The hash aggregation operator builds a hash table to perform aggregation after
+grouping the tuples based on the specified column. The key for the hash
+table is Category_ID. The value for the hash table is the summed profit
+for each category. Let's look at the code. The
+hash aggregation operator also derives from the
+unary operator class. This operator uses the group by attributes vector to determine which attributes or
+columns to group by, for instance, the first field. Each group corresponds to a unique set of
+attribute values. It then uses the relevant
+aggregation function in the aggregate
+functions vector, such as sum or count to
+aggregate each group. Lastly, it stores the
+resulting aggregate tuples in the output tuples table. For example, here, the group by attribute is the third
+column Category_ID. The aggregate function here is sum over the second
+column profit. The output aggregate tuples of the hash aggregation
+operator will be 1, 1,000 and 2, 3,000, which are the profits associated with the first and
+second categories. Let's look at the
+operator's code. The open method initializes
+the aggregation process, setting up a hash table to store the intermediate
+group values. The next method is a cursor
+over these aggregated tuples, allowing sequential
+access to the grouped and summarized
+aggregate tuples. We can group based
+on multiple columns. For example, this query
+calculates the total profit for each category and each
+month from the sales database. Each unique combination
+of values from the two columns specified in the group by clause
+forms a group. So each group key
+has two columns, a Category_ID, and a month. So the group key here
+is a vector of fields. To hash the group key when we are grouping based
+on multiple columns, we implement a hasher
+for a vector of fields. This hash function calculates the hash values for a
+vector of field objects, which represent the
+grouped column of tuples. The hash function
+tries to assign unique hash values for distinct
+attribute combinations, thereby optimizing the storage and retrieval
+operations in the hash table. The hashing process
+involves multiple steps. For example, let's say we are
+grouping over two columns, Category_ID and month
+of the transaction. The hash value starts with
+a base value of zero, and it is updated iteratively while we go over each
+field in the vector. For both string and
+integer fields, the hash function
+reinterprets these values as strings and computes the
+hash of the strings. For example, it interprets 123 as string 123 and hashes it. The resultant hash
+values for each field is combined using
+XOR and bit shifts. The overall hash value helps
+distribute the hash values evenly across the hash table
+and helps reduce collisions. In the hash table,
+each unique group key is associated with its
+respective aggregate values. These aggregates are dynamically updated as new tuples
+are processed. For example, here, when we reach the third tuple
+in the base table, we add an aggregate tuple
+in the hash table for the second category and the month of June with
+a value of 1,000. When we move to
+the fourth tuple, this aggregate value in the hash table is
+updated 1,000-3,000. Let's look at the code again. The updateAggregate method
+manages the aggregation logic. It checks for type consistency between current
+aggregate value and the new value and then applies the appropriate
+aggregation operation, safeguarding against type
+mismatches and logical errors. In this manner, the
+aggregate value is dynamically updated
+for each group. Once all the tuples
+have been process, the operator appends
+the group keys and the aggregated value into
+new aggregate tuples. In this way, each output tuple correctly represents a group
+and its aggregated data. To recap, in this lesson, we explored the role of the hash aggregation operator in efficiently summarizing
+large datasets. From the internals of its hashing mechanism to its practical usage
+in SQL queries, we have seen how this operator enables complex
+aggregation task.
+
+>> In this lesson, we
+will discuss about how complex SQL queries can be executed using a relational
+operator framework. This approach will
+allow us to move away from hard-coded
+query functions. We will then discuss about
+some interesting connections between the operator framework and the Unix command pipeline. So far, database queries in
+Bus DB have been hard-coded. For instance, consider
+the following SQL query. This query selects
+tuples from a table and filters the tuples based
+on values of column 1. It then groups filtered tuples based on
+column 1 and lastly, it sums up values of column
+2 for each of these groups. This query is
+currently support in bus DB using a
+hard-coded function. The heart-coded select
+group by sum function first scans all the tuples from the on-disk table and
+builds an index. It then uses the index to filter out tuples
+where the value of column 1 is not within
+the lower and upper bounds. It then groups the filtered
+tuples based on column 1. Lastly, it sums the value of column 2 in each
+of those groups. Such hard-coded
+query functions are not easy to change for
+handling another query. In the next version of bus DB, we will design a
+flexible interface for executing queries using the relational
+operator framework. This approach is more flexible
+and will later allow us to automatically transform query strings to
+operator pipelines. Let's look at how
+the SQL query can be transformed into a pipeline
+of relational operators. The query pipeline begins
+with a scan operator that scans tuples from the on-disk table using
+the buffer manager. The pipeline then has a select operator that
+takes the output of the scan operator as input and filters the table
+using a predicate. The pipeline then sets up a hash aggregation operator that takes the output of
+the select operator as input and sums up the value in the second column after grouping the tuples based on
+the first column. In this way, this
+operator pipeline handles data filtering
+and aggregation in a modular way instead of using a hard-coded monolithic
+query function. Let's look at the code. The execute query function
+sets up the operator pipeline. It begins with a scan
+operator that scans the tuples from the on-disk table using the buffer manager. It then set up a select operator
+that takes the output of the scan operator as input and filters data
+using a complex predicate. The function then sets up a hash aggregation operator that takes the output of
+the select operator as input and sums up the values in the second column after grouping the tuples based on the
+values in the first column. In this way, the function uses a series of operators
+to execute the query. Let's next look at some
+interesting connections between relational database systems and the Unix operating system. Both of them were
+developed in the 1970s, transformative
+period in computing. UNIX was developed
+by Dennis Ritchie, Ken Thompson, and their
+colleagues at AT&T Bell Labs. They aimed to create a flexible and portable
+operating system, which eventually
+set a new standard for simplicity in
+software design. Around the same
+time frame at IBM, Ted Codd and the system team laid the groundwork for
+relational databases. They aim to introduce a structured approach
+to data management. Both systems, though
+independently developed at
+different locations, were focused on
+reducing the complexity of monolithic software
+systems of that era. In the Unix philosophy, each tool should
+perform a specific, well-defined task, similar
+to relational operators. For example, Grep is used to search for a specific
+string in a text file. Similarly, in
+relational databases, a select operator
+is used to filter out specific data from a table. Both unique and relational
+databases are designed around the principle of each tool or operator doing
+one thing well. In Unix, tools can be
+combined using pipes to perform complex text
+manipulation workflows. For example, this pipeline
+reads a text file, then selects lines
+containing error, sorts them, and counts the occurrence of
+each unique line. The CAT file text command
+reads the contents of filed text and outputs
+it to the standard output. The Grep error command then
+filters the output from cat, keeping only the lines that
+contain the substring error. The sort command sorts the
+filtered lines alphabetically. Lastly, the unique C command
+collapses identical lines into a single line and precedes each line with
+the count of occurrences. This approach is
+similar to how we can combine relational
+operators such as scanning, filtering, grouping, and sorting operators to
+perform a similar task. This pipelining allows
+for the flow of data through a chain of tools
+or relational operators, increasing flexibility
+in data manipulation. Another connection
+between Unix and relational databases is
+standardized interface. Each Unix tool takes a text file as input and
+generates a text file as output. This is similar to how
+relational operators take a table as input and
+generate a table as output. This standardized interface
+is the reason why we can compose these tools
+and operators easily to accomplish
+complex workflows. Lastly, both unique and
+relational databases support extensibility. Unique systems are
+easily extensible, allowing users to add a custom tool into the
+existing operating system. Similarly, in a
+relational database, we can define a custom
+relational operator or a custom function to extend the functionality
+of the database system. To recap, in this lesson, we discussed how a relational
+operator framework can effectively support
+complex queries. We also covered how the
+unique operating system and relational databases have several interesting
+connections.
+
+>> In this lesson, we
+will briefly go over the data definition
+language in SQL. We will then illustrate how the operator framework supports this data definition language using the create index operator. SQL consists of two
+important sub languages; data definition language or DDL, and data manipulation
+language or DML. DDL is used to define or modify the structure of
+the database itself, including the
+creation of tables, the deletion of tables, indices, and other
+database objects. On the other hand,
+DML focuses on querying or modifying
+the tuples in tables. DDL operations like
+create, alter, and drop are useful for setting up and modifying
+the scheme of a database. They act on database
+objects including tables, indices, and views. Here, as we already know, tables are the primary
+data structures for storing the tuples, indices or derived
+data structures for speeding up retrieval of
+relevant tuples from tables. Views are virtual
+tables that are useful for simplifying
+and accelerating queries. Let's focus on the create
+index operator in this lesson. The create index operator
+builds an index based on a specific column or set
+of columns in a table. The two key components of this operator are the column
+offset and the index itself. The column offset
+identifies the column within the tuple over which the index will
+be constructed. Here, we are building an
+index over the salary column, which is at offset one. So the key is salary and the
+value is the employee ID. The index is going to be an
+instance of the hash index, which will help retrieve tuples based on the indexed
+salary column efficiently. So we will be able to quickly retrieve the employees earning a particular salary using this index. Let's
+look at the code. The index building process is initiated in the open method. We itrate over all the tuples
+from the child operator. While processing each tuple, the create index operator
+extracts the key from the tuple using the given attribute
+index or column offset. For each key, we store
+the employee ID as the value and insert the key value pair
+into the hash_index. In this way, all the tuples are indexed based on the salary. The next method in the create
+index executor is empty. This is because the
+entire index creation is done in the open method. So there is nothing to do here. Once the index is constructed, it can be accessed and utilized using the
+getIndex method. The getIndex method provides a reference to the constructed
+hash_index object. Other operators in
+the database system like the select operator, can leverage the built index to filter tuples during
+query processing. Here's how the create
+index operator is used in the next
+version of DB. We pass the scan operator as the child operator to the
+create index operator. We also pass the parameter
+1 indicating that the index will be built on the sacan attribute of the tuples processed
+by the scan operator. The index is later used by
+other operators as shown here. In this way, the
+create index operator improves the modularity
+of the database system, enabling a clean separation of concerns between data scanning, index building, and
+query processing. To recap, in this lesson, we covered the DDL part of SQL. We then discussed about how the create index
+operator creates an index on a column
+or a set of columns. In this manner, the
+operator framework supports both DDL and DML operators
+in a uniform modular way.
+
+In this module, we exploit
+advanced query operators and how they contribute to efficient query prossing
+through operator pipelines. We started with how to support more complex predicates with both comparison and
+logical operators using the I predicate interface. We then examined the hash
+aggregation operator, which handles grouping and
+aggregation operations. We discussed about the
+query operator pipeline where multiple operators work
+together in a query plan. Finally, we looked at the
+create index operator, which is an illustrative
+DDL operator for building an index.
