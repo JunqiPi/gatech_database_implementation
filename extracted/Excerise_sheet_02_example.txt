@@ -1,0 +1,82 @@
+Practice Questions
+Here is a set of practice questions that are representative of the types of questions in the exercise sheet:
+
+1. Which of these statements about B+ tree leaf and internal nodes is NOT correct?
+
+A. If a deletion removes the smallest key in a leaf, the parent's separator for that child may need to change to the leaf's new smallest key; this adjustment can cascade upward along leftmost boundaries.
+
+B. Storing record IDs (pointers) instead of full tuples in leaves does not change search paths or height; it mainly affects leaf fanout and the cost to fetch the referenced record.
+
+C. In a standard B+ tree, internal nodes hold only separator keys and child pointers; payloads live exclusively in leaves, and internal keys may duplicate leaf keys.
+
+D. For exact-match searches, if the search key equals an internal separator, the search may be accelerated by terminating at that internal node where the separator is a copy of the leaf key.
+
+2. Which data structure underlies C++ std::unordered_map, and what is its expected average time complexity for lookups?
+
+A. B+ tree, O(log_B N) on average
+
+B. Skip list, O(log N) on average
+
+C. Hash table, O(1) on average
+
+D. Red-black tree, O(log N) on average
+
+3. B+ tree snapshot (height 3: root → inner nodes → leaves). Root has 4 children. Inner nodes have 3, 5, 4, and 2 children respectively. Each leaf node has exactly 3 records. What is (total internal separator keys, total leaf payload values)?
+
+A. (12, 42)
+
+B. (12, 45)
+
+C. (13, 45)
+
+D. (13, 42)
+
+4. A query with GROUP BY and ORDER BY is translated into a pipeline that currently ends with a HashAggregation operator. You want to support ORDER BY. Which statement is NOT correct?
+
+A. If the operator framework is modular, a Sort operator can be inserted after HashAggregation to produce ordered output.
+
+B. The planner must decide where to place the Sort operator in the pipeline to balance correctness and performance.
+
+C. When ORDER BY uses the same key(s) as GROUP BY, planners can assume that the HashAggregation's output will be in the correct key order.
+
+D. If the grouping keys and ordering keys are the same, it may be possible to use an ordered aggregation strategy instead of a separate Sort operator.
+
+5. Consider a Patricia trie after inserting strings S = {"he", "hell", "hello", "helium", "hero"}. Edges store substrings; terminals are node flags (no extra edge for empty suffix). Starting from this trie, insert two additional strings: {"heli", "help"}. Count only NEW nodes and ADDITIONAL edge-label characters introduced by these two inserts. What is the ordered pair ( Δ nodes , Δ chars )?
+
+A. (2, 0)
+
+B. (3, 0)
+
+C. (2, 1)
+
+D. (3, 1)
+
+6. Which comparison between R-Trees and B+ Trees is NOT correct?
+
+A. R-Trees are commonly used for multi-dimensional spatial data, whereas B+ Trees are typically used for single-dimensional ordered keys.
+
+B. Similar to B+ Trees, R-Trees support an in-order traversal that enumerates rectangles sorted by their coordinates
+
+C. B+ Trees maintain a single global total order on keys, while R-Trees group objects into overlapping spatial regions.
+
+D. Entries at the same level in an R-Tree can correspond to bounding rectangles that overlap or partially contain one another.
+
+7. What is the advantage of supporting both direct and indirect field references in Select predicates, and which statement is NOT correct?
+
+A. Indirect references are heavily used in index lookups and can be highly optimized in the execution engine.
+
+B. Indirect references let predicates compare attributes within the same tuple, such as start_time < end_time.
+
+C. Direct references let predicates compare attributes to constants, such as price < 100.
+
+D. Supporting both increases the expressiveness of the query engine without requiring additional operators.
+
+8. In large, production web-scale search engines, which statement best describes how the inverted index is typically partitioned across machines?
+
+A. The index is primarily document-partitioned: the document collection is split into shards, each shard builds a local inverted index over its documents, and queries are broadcast to all shards with results merged by a coordinator.
+
+B. The index is primarily term-partitioned: the term dictionary is split so that all postings for a given term reside on exactly one machine, and queries rarely need to contact more than a single shard.
+
+C. Production systems rely almost exclusively on hybrid schemes in which term-partitioned and document-partitioned layouts are used equally often, with no clear preference for either as the primary strategy.
+
+D. Most systems avoid any explicit partitioning; a single monolithic index is kept on one large server, and scaling is handled almost entirely by caching.

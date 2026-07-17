@@ -1,0 +1,2 @@
+- [出题人题型模式](exam-question-patterns.md) — GT 数据库课 quiz 的题型统计、错误选项 6 手法、计算题诱饵规律
+- [已交付的复习材料](deliverables-log.md) — 各 quiz 的 study guide / 练习题文件位置与覆盖范围
