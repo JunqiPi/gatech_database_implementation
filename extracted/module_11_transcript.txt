@@ -1,0 +1,196 @@
+In this module, we
+will learn about query parsing and
+query compilation, the processes that transform SQL statements into
+executable query plans. We will start with
+query parsing, where SQL like queries
+are translated into a structured query plan that the database can execute. Next, we will discuss about query compilation
+where the past query is directly transformed to machine code for more
+efficient query execution.
+
+>> In this lecture, we will learn about a flexible
+approach for executing an arbitrary SQL
+query by passing the query string instead of hard coding the query as a function. In particular, we will
+discuss about how to parse queries using
+regular expressions. Currently, in buzzDB, queries are executed
+by hard coding them as functions using
+our operator framework. In this next version, we will add support
+for executing queries by just specifying
+them as a string. Our query strings can range from simple selections
+like select column 1, where column 1 is
+greater than two, and column 1 is less than six, to more complex
+aggregate queries involving grouping and
+summing operations. We will extract details about the query from
+the query string, like how to filter
+the tuples, etc. To extract these details, we will use regular expressions, also known as regex, to identify and isolate different parts of
+the query string. For example, in this
+parse query function, we are using the
+select "Regex" in C++ to extract the columns that are being selected
+in the query string. Similarly, other regex patterns are used for detecting
+sum operations, group by classes, and
+where conditions. This approach to
+extracting details from the query string is
+known as query parsing. The retrieved details are stored in the query
+components struct. This structure includes all the essential components
+like select attributes, which is a vector
+with the indices of the columns being retrieved. The other components passed from the query include sum operation, which is a boolean indicating if a sum operation is
+included in the query, the sum attribute index, which specifies which
+attribute to sum, group by, which is a boolean to specify if there is
+a group by clause, group by attribute index to identify the
+attributes to group by, where condition to verify the presence and the bounds
+of the where clause. In this way, the query
+components struct contains all the necessary components
+to execute SQL queries. We use four regular expressions to identify and extract
+the query components. The first one is for extracting the indices of
+the selected attributes. The second one is for
+identifying a sum operation. The third one is for
+locating a group by clause and extracting the
+relevant attribute index. The fourth one is a
+more complex regex for extracting and validating
+the where clause applied on a predicate. A regular expression
+or a Ragex is a sequence of characters that
+define a search pattern. It is typically used
+for string matching. For example, the sum
+regex pattern shown here is used to detect and parse the sum operation
+within the query. The text sum explicitly
+matches the text sum, and the braces match the
+literal curly braces. D plus is a capturing group that matches one or more digits. D stands for a digit and plus means one or more occurrences
+of the preceding element, which is a digit in this case. This captures the number
+inside the braces, which is three in this example. This number identifies which column the sum operation
+should be applied on. Once a query is passed, it is useful to print and
+verify the query components. The pretty print function
+outputs these components in a structured format
+and is useful for understanding the
+query structure and conditions at a glance. Next, let's look at how to
+execute these past queries. The execute query method uses the past query components struct to set up and execute the query. It starts with a
+basic scan operation and then dynamically configures additional operations like select and hash
+aggregation operators based on the past components. If a query has a where clause, we construct the
+predicate dynamically. For each condition
+in the where clause, we construct a simple
+predicate object. We then combine the
+predicates using a complex predicate for
+logical and operations. Lastly, we embed the
+combined predicate into the select operator to filter tuples dynamically
+during the scan. For queries involving
+aggregation, we check if sum or group
+by has been specified. We then configure the
+aggregation function and grouping attributes
+accordingly. In particular, we instantiate the hash aggregation
+operator to handle the aggregation based on the specified group
+by attributes, an aggregation
+function like sum. Finally, we execute
+the operator chain configured for the given query. We start the execution at the root operator
+by opening it. We then continuously fetch and print the tuples generated by the root operator that meet all the specified conditions
+and aggregations. The root operator
+recursively calls its child operator and so on until we hit a leaf operator with no children like
+the scan operator. In this way, we can
+dynamically map query strings to operator
+chains and execute them. Let's look at an example. Here, we parse the
+query string and use the extracted details to
+construct a chain of operators. At the base, we have
+a scan operator responsible for scanning
+all the columns from the table using
+a buffer manager. Above the scan, there is
+a select operator that filters rows based on
+the value of column 1. It selects rows where the
+value of column 1 is 2-6. Lastly, at the top, we have the hash aggregation operator. This operator sums the
+values of column 1 after grouping the filtered
+rows based on column 2. In this way, we parse
+the query string and map it to an
+operator pipeline. To recap, in this lesson, we explore query
+parsing in buzzDB. We discussed about using regular expressions to
+extract details from the query string and then
+dynamically construct an operator chain based
+on the extracted details. In this way, query
+parsing improves the flexibility of
+query processing in our database system.
+
+
+>> In this lesson, we will learn about
+the limitations of our query interpretation
+approach and then present a faster
+way to execute queries by compiling them
+to assembly instructions. The way we currently execute queries is known as
+query interpretation. Query interpretation
+begins with parsing the SQL query to extract the
+key details about the query. Based on the past details, we next generate a
+query execution plan, which is essentially
+a chain or tree of operators that specify
+how to execute the query. Finally, this query
+plan is executed. Let's look at the code
+for query interpretation. The query interpretation
+function internally uses the parse query and
+execute query functions. The parse query function breaks down the query
+into components. Based on the parsed components, the execute query creates an operator chain
+and executes it. While the query interpretation
+approach is very flexible, it is also slow. There are several
+sources of CPU overhead. First, each tuple
+must pass through multiple operators with
+several function calls. This overhead can
+significantly affect performance when the query must be executed on
+millions of tuples. Second, each tuple must be deserialized using a
+generic schema assumption. Third, there is also the
+compute overhead associated with dynamic function
+dispatch in polymorphism, as we are using pointers to abstract classes
+for operators. This dispatch requires
+an additional lookup in a virtual table which introduces overhead
+for the method call. Besides compute overhead,
+there is memory overhead arising from
+frequent creation and destruction of
+temporary objects in operators such as unique
+pointers to fields. Let's next discuss about a faster way to process
+queries by compiling them. Query compilation consists of translating the SQL
+query string to a hard coded C function and then generating assembly
+code from that function. This compiled approach
+significantly speeds up query processing, as the database system
+can directly run the machine code bypassing the overhead of query
+interpretation. The query compilation
+function moves away from the operator framework and goes towards a more
+hard coded approach. It directly runs all
+the operations from scanning through aggregation
+in a single function. It directly navigates through all the pages in the table using the buffer manager and processes all the tuples within
+the slots in the page. After going to a tuple slot, the function refers to the tuple data as a
+raw character string. It then directly deserializes the first field from the
+raw string to an integer. This kind of hard coded
+deserialization is super fast, but also very rigid, unlike the interbred approach, which is flexible but slow. The function then
+filters the tuple based on the lower bound
+and upper bound values. If the tuple passes
+through the filter, we then update the group
+sum for that field value. Lastly, we print all the group sums as the result of the query. The advantages of query
+compilation are two fold. First, compiled queries
+eliminate the need for interpreting each tuple and passing them through
+several operators, thereby saving compute
+and memory resources. Second, as compiled
+queries run on bare metal, they run significantly faster. Concretely, for
+this illustrative grouping based aggregation
+query in bus DB, the compiled query is 30 times faster than the
+interpreted query. Query compilation also
+has some drawbacks. First, the compilation process itself can be time consuming. If the execution time
+of the query is short, then the total time to
+compile and run it might be actually longer than
+just interpreting it. Second, compiled queries are flexible compared to
+interpreted queries. Once a query is compiled
+into machine code, it is not possible
+to easily adjust the compiled query if the
+table schema changes, etc. There might be a need
+to recompile the query. The cost of frequent
+re compilations might exceed the performance gains
+from query compilation. To recap, in this lesson, we explore how database systems can enhance performance
+through query compilation. By converting SQL queries into machine level instructions, we reduce the overhead
+associated with query interpretation and
+improve query execution speed. However, there are also
+some drawbacks with query compilation such
+as reduced flexibility.
+
+
+In this module, we covered
+the steps that turn SQL like queries into actionable
+query execution plan with relational operators. We looked at query parsing, where we use regular expressions to extract the details from the Query string and then
+dynamically construct an operator chain based
+on the extracted details. Query parsing improves
+the flexibility of query execution in SDP. We then exploit query
+compilation where past queries are transformed
+into low level machine code, thereby avoiding the
+overhead associated with query interpretation and
+improving query execution speed. However, there are
+also some drawbacks with query compilation such
+as reduced flexibility.

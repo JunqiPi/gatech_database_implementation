@@ -1,0 +1,577 @@
+1
+0 / 1分
+选择题
+When implementing the next() method in a Scan operator, which statement is NOT correct?
+
+It should be robust to encountering empty or logically deleted tuples and skip them when producing output.
+，未选择
+错误答案：
+
+Correct implementations typically maintain explicit page and slot cursors and centralize boundary checks to keep the logic maintainable.
+正确答案：
+It must detect when the last page (and first slot) has been read and signal end-of-stream to avoid infinite loops.
+
+The operator must correctly advance across slots within a page and then across pages within the relation.
+，未选择
+
+It must detect when the last page (and first slot) has been read and signal end-of-stream to avoid infinite loops.
+，未选择
+位置2的问题的结果。
+2
+1 / 1分
+选择题
+In an R-Tree, a common way to implement nearest-neighbor search is a best-first traversal.
+Which data structure is most appropriate for this traversal?
+
+Queue.
+，未选择
+
+Stack of nodes.
+，未选择
+正确答案：
+
+Priority queue.
+
+Hash table
+，未选择
+位置3的问题的结果。
+3
+0 / 1分
+选择题
+Which statement about learned indexes, compared to traditional B+ Trees, is NOT correct?
+
+They support better worst-case lookup time than a B+ Tree for complex key distributions.
+，未选择
+错误答案：
+
+They reduce index size by replacing parts of the tree structure with compact model parameters.
+正确答案：
+They support better worst-case lookup time than a B+ Tree for complex key distributions.
+
+They are organized hierarchically, with coarse models routing keys to sub-models trained on smaller key ranges.
+，未选择
+
+They exploit regularity in the key distribution to reduce the average number of memory accesses for point lookups.
+，未选择
+位置4的问题的结果。
+4
+1 / 1分
+选择题
+What is the advantage of supporting both direct and indirect field references in Select predicates, and which statement is NOT correct?
+
+Supporting both increases the expressiveness of the query engine without requiring additional operators.
+，未选择
+正确答案：
+
+Indirect references are heavily used in index lookups and can be highly optimized in the execution engine.
+
+Indirect references let predicates compare attributes within the same tuple, such as start_time < end_time.
+，未选择
+
+Direct references let predicates compare attributes to constants, such as price < 100.
+，未选择
+位置5的问题的结果。
+5
+1 / 1分
+选择题
+Which comparison between R-Trees and B+ Trees is NOT correct?
+
+Entries at the same level in an R-Tree can correspond to bounding rectangles that overlap or partially contain one another.
+，未选择
+正确答案：
+
+Similar to B+ Trees, R-Trees support an in-order traversal that enumerates rectangles sorted by their coordinates
+
+R-Trees are commonly used for multi-dimensional spatial data, whereas B+ Trees are typically used for single-dimensional ordered keys.
+，未选择
+
+B+ Trees maintain a single global total order on keys, while R-Trees group objects into overlapping spatial regions.
+，未选择
+位置6的问题的结果。
+6
+0 / 1分
+选择题
+```cpp
+auto new_page_id = next_page_id++;
+auto new_leaf = std::static_pointer_cast<LeafNode>(getNode(new_page_id));
+new(new_leaf.get()) LeafNode();
+```
+The code snippet above uses the placement `new` operator `new(new_leaf.get()) LeafNode();`. What is the primary purpose of this syntax in the context of the buffer manager?
+错误答案：
+
+To instruct the operating system to eagerly allocate a fresh, zero-initialized page on the physical storage drive.
+正确答案：
+To invoke the constructor directly onto the existing buffer frame, initializing it without new heap memory.
+
+To automatically register the newly created node with the global C++ garbage collector so it can be evicted when no longer needed.
+，未选择
+
+To cast a generic `Node` pointer into a `LeafNode` pointer dynamically, throwing a `std::bad_cast` exception if the page is corrupted.
+，未选择
+
+To invoke the constructor directly onto the existing buffer frame, initializing it without new heap memory.
+，未选择
+位置7的问题的结果。
+7
+1 / 1分
+选择题
+A Select operator may support both direct and indirect field references in its predicates. Which statement is NOT correct?
+
+Supporting indirect references allows the engine to express conditions like 'salary > bonus' without materializing extra columns.
+，未选择
+
+A direct field reference typically compares a tuple field to a literal constant, e.g., TUPLE[0] > 5.
+，未选择
+
+An indirect field reference may compare one field of the tuple to another, e.g., TUPLE[0] > TUPLE[2].
+，未选择
+正确答案：
+
+Some systems lower indirect references to an efficient special case while still using a unified internal representation for predicates.
+位置8的问题的结果。
+8
+1 / 1分
+选择题
+As the number of dimensions increases in R-Tree indexing, which statement is NOT correct?
+
+The effectiveness of pruning based on bounding rectangles tends to decrease, making queries more expensive.
+，未选择
+
+With higher dimensionality, R-Tree cannot guarantee that each query can be answered by following a single root-to-leaf path, since MBRs often overlap.
+，未选择
+
+Query performance can degrade toward a full scan as dimensionality grows, an instance of the 'curse of dimensionality'.
+，未选择
+正确答案：
+
+Overlaps between MBRs typically reduce, forcing more branches to be visited during queries.
+位置9的问题的结果。
+9
+1 / 1分
+选择题
+Consider a pipeline Scan -> Select -> GroupBy -> Join. You want to insert a Projection operator that drops unused columns before the Join. Which statement is NOT correct?
+正确答案：
+
+Because the pipeline has already been built, introducing Projection requires rewriting the Join operator to call Projection explicitly.
+
+If all operators share the same interface, the Projection can be inserted between GroupBy and Join without changing the Join’s code.
+，未选择
+
+Projection can reduce the width of tuples flowing into the Join, potentially lowering memory and CPU costs.
+，未选择
+
+If the Join predicate uses only attributes that survive the Projection, the logical result of the query is unchanged.
+，未选择
+位置10的问题的结果。
+10
+1 / 1分
+选择题
+A Hash Aggregation operator maintains per-group fields runningSum and runningCount for attribute x, and wants to compute several aggregates. Which statement about what can be derived from this per-group state is NOT correct?
+
+VARIANCE(x) needs additional per-group state.
+，未选择
+正确答案：
+
+MIN(x) does not need additional per-group state.
+
+COUNT(x) for a group can be read directly from runningCount.
+，未选择
+
+SUM(x) for a group can be read directly from runningSum.
+，未选择
+位置11的问题的结果。
+11
+0 / 1分
+选择题
+Which of the following is NOT a typical optimization strategy for a Select operator whose predicate rejects many tuples?
+
+Pushing the Select operator as close as possible to the Scan to avoid materializing tuples that will be discarded.
+，未选择
+错误答案：
+
+Applying short-circuit evaluation to avoid computing parts of a complex predicate when the outcome is already determined.
+正确答案：
+Reordering conjuncts (e.x., WHERE price < 100 AND stock > 0 AND classify(text) = 'fiction') so that expensive or more selective predicates are evaluated first.
+
+Using available indexes to retrieve only tuples that are likely to satisfy the predicate.
+，未选择
+
+Reordering conjuncts (e.x., WHERE price < 100 AND stock > 0 AND classify(text) = 'fiction') so that expensive or more selective predicates are evaluated first.
+，未选择
+位置12的问题的结果。
+12
+1 / 1分
+选择题
+In a hierarchical learned index, which statement about the role of sub-models is NOT correct?
+
+Sub-models can be arranged in multiple layers, forming a tree of models that route and refine predictions.
+，未选择
+
+Sub-models are trained on narrower key ranges to refine the coarse position estimates of a top-level model.
+，未选择
+
+Sub-models can reduce local prediction error by fitting the key->rank mapping more closely in their assigned segment.
+，未选择
+正确答案：
+
+Sub-models adapt the same model architecture and hyperparameters to the local structure of their key ranges.
+位置13的问题的结果。
+13
+1 / 1分
+选择题
+```cpp
+auto leaf = std::static_pointer_cast<LeafNode>(node);
+if (leaf->count < LeafNode::kCapacity) {
+    leaf->insert(key, value);
+} else {
+    splitNode(path, leaf);
+    insert(key, value);
+}
+```
+In the B+ Tree insertion logic shown above, the node is explicitly split *before* the new key-value pair is inserted. Why is this specific order of operations important?
+
+
+Because the C++ compiler requires all tree restructurings to occur prior to any heap allocations to ensure strict lock-free concurrency guarantees.
+，未选择
+
+Because `splitNode` automatically sorts the node's internal arrays and rebuilds the metadata, which must be done before any new elements can be placed.
+，未选择
+
+Because inserting before splitting would permanently corrupt the global buffer pool manager by leaving dirty pages unpinned.
+，未选择
+正确答案：
+
+It prevents temporarily writing past the fixed-size array boundaries, avoiding a buffer overflow.
+位置14的问题的结果。
+14
+1 / 1分
+选择题
+Which statement about separating Data Definition Language (DDL) from Data Manipulation Language (DML) in SQL is NOT correct?
+
+This separation clarifies system architecture by distinguishing metadata changes from tuple-level data operations.
+，未选择
+
+DML operations manipulate the data stored in those schema objects, e.g., SELECT, INSERT, UPDATE, DELETE.
+，未选择
+
+DDL operations define or modify schema objects such as tables, views, and indexes.
+，未选择
+正确答案：
+
+A user who is allowed to perform DML on a table is typically allowed to perform DDL on that table.
+位置15的问题的结果。
+15
+0 / 1分
+选择题
+In a Hash Aggregation operator, which statement about the internal data structure is NOT correct?
+
+A hash table keyed by the group-by attributes is a common choice because it supports expected O(1) lookups and updates.
+，未选择
+
+Using an ordered balanced tree instead of a hash table can make sense if the output must be produced in key-sorted order without an extra Sort operator.
+，未选择
+错误答案：
+
+Hash Aggregation must store the group keys (or a representation of them) so that aggregate states can be associated with specific groups.
+正确答案：
+Using an ordered balanced tree instead of a hash table can make sense if the output must be produced in key-sorted order without an extra Sort operator.
+
+Some implementations spill hash buckets to disk when the in-memory hash table grows beyond a configured size.
+，未选择
+
+Each hash table entry typically stores the group key and one or more aggregate state variables (e.g., sum, count).
+，未选择
+位置16的问题的结果。
+16
+1 / 1分
+选择题
+A query with GROUP BY and ORDER BY is translated into a pipeline that currently ends with a HashAggregation operator. You want to support ORDER BY. Which statement is NOT correct?
+
+If the grouping keys and ordering keys are the same, it may be possible to use an ordered aggregation strategy instead of a separate Sort operator.
+，未选择
+正确答案：
+
+When ORDER BY uses the same key(s) as GROUP BY, planners can assume that the HashAggregation's output will be in the correct key order.
+
+If the operator framework is modular, a Sort operator can be inserted after HashAggregation to produce ordered output.
+，未选择
+
+The planner must decide where to place the Sort operator in the pipeline to balance correctness and performance.
+，未选择
+位置17的问题的结果。
+17
+0 / 1分
+选择题
+Which statement about using a single linear regression model as a learned index is NOT correct?
+错误答案：
+
+Its limited capacity can make it less robust to complex distributions than a small hierarchy of specialized sub-models.
+正确答案：
+It eliminates the risk of overfitting to the training data in practice.
+
+It may underfit highly non-linear key->position mappings, leading to large local prediction errors.
+，未选择
+
+It eliminates the risk of overfitting to the training data in practice.
+，未选择
+
+Its simplicity can make it cheaper to evaluate than deep neural models.
+，未选择
+位置18的问题的结果。
+18
+0 / 1分
+选择题
+When passing tuples between operators, why might deep copying be used, and which statement is NOT correct?
+
+Deep copying can prevent subtle aliasing bugs in which two operators unintentionally share and modify the same in-memory tuple.
+，未选择
+错误答案：
+
+Deep copying ensures that an upstream operator can safely reuse or overwrite its internal buffers without affecting downstream operators.
+正确答案：
+Some engines use reference counting or ownership flags to perform deep copies when tuples are only read, not modified.
+
+Deep copying increases memory and CPU overhead, so it is often selectively applied only where necessary.
+，未选择
+
+Some engines use reference counting or ownership flags to perform deep copies when tuples are only read, not modified.
+，未选择
+位置19的问题的结果。
+19
+0 / 1分
+选择题
+Which statement about how an R-Tree models space is NOT correct?
+
+Internal MBRs are compact and may not contain regions of space where no actual object resides.
+，未选择
+
+Each internal node stores, for every child, a minimum bounding rectangle (MBR) that encloses all objects in that child's subtree.
+，未选择
+错误答案：
+
+Internal nodes store only bounding rectanges, not exactly polygonal geometry of all objects in their subtree.
+正确答案：
+Internal MBRs are compact and may not contain regions of space where no actual object resides.
+
+Leaf nodes typically store either the MBRs of actual objects or object identifiers with their associated MBRs.
+，未选择
+位置20的问题的结果。
+20
+1 / 1分
+选择题
+Which of these statements about Patricia trie insertion and node splitting is NOT correct?
+
+After a split, reattach the old child under a new intermediate node keyed by the common prefix and continue on the remainder.
+，未选择
+
+If no child shares any prefix with the remainder, create a new child labeled with the full remainder substring.
+，未选择
+
+If the common-prefix length with a child edge is proper (shorter than that edge), split that edge into a prefix edge and a remainder edge.
+，未选择
+正确答案：
+
+Patricia-tries maintain one-character edges; so splits therefore expand into chains of character-sized edges.
+位置21的问题的结果。
+21
+0 / 1分
+选择题
+Which of the following is NOT a realistic challenge when using neural networks as learned indexes?
+
+Handling data distribution drift, which can degrade the accuracy of the learned mapping over time.
+，未选择
+错误答案：
+
+Ensuring that the model’s prediction error stays within a bounded window so that local search remains efficient.
+正确答案：
+Increasing model complexity to reduce memory footprint and lower lookup latency when deployed inside the learned index.
+
+Increasing model complexity to reduce memory footprint and lower lookup latency when deployed inside the learned index.
+，未选择
+
+Choosing appropriate hyperparameters, such as learning rate, network depth, and number of epochs.
+，未选择
+位置22的问题的结果。
+22
+1 / 1分
+选择题
+A 'Create Index' operator is added to the engine to build a hash index on a column. Why might the index-building logic be placed in open(), and which statement is NOT correct?
+正确答案：
+
+If index construction is expensive, doing it in open() will increase the latency of every next() call, even though it prevents repeated work.
+
+If index creation were triggered inside next(), repeated calls to next() could rebuild or partially rebuild the index many times.
+，未选择
+
+open() is called once before any tuples are requested, so building the index there avoids redoing the work on each call to next().
+，未选择
+
+Placing the build in open() allows subsequent operators in the pipeline to assume that the index is fully constructed once they begin pulling tuples.
+，未选择
+位置23的问题的结果。
+23
+0 / 1分
+选择题
+Consider a positional inverted index that supports multi-term proximity queries.
+Two conceptual stages are:
+(1) Compute the set of document IDs that contain all query terms.
+(2) In a document, merge the positional lists of the terms to check distances.
+Which processing order correctly describes how a multi-term proximity query is typically evaluated?
+
+(2) only
+，未选择
+
+(1) only
+，未选择
+
+(1) followed by (2)
+，未选择
+错误答案：
+
+(2) followed by (1)
+正确答案：
+(1) followed by (2)
+位置24的问题的结果。
+24
+1 / 1分
+选择题
+Which statement does NOT accurately describe the primary role of a Select operator in a query pipeline?
+
+It evaluates a predicate on each input tuple and outputs only those tuples that satisfy the predicate.
+，未选择
+
+It may be pushed down closer to Scan operators to reduce data volume early in the pipeline.
+，未选择
+正确答案：
+
+It can significantly increase the number of tuples processed by downstream operators when predicates are selective.
+
+It may support both simple predicates and conjunctions/disjunctions of multiple predicate clauses.
+，未选择
+位置25的问题的结果。
+25
+1 / 1分
+选择题
+In large, production web-scale search engines, which statement best describes how the inverted index is typically partitioned across machines?
+正确答案：
+
+The index is primarily document-partitioned: the document collection is split into shards, each shard builds a local inverted index over its documents, and queries are broadcast to all shards with results merged by a coordinator.
+
+The index is primarily term-partitioned: the term dictionary is split so that all postings for a given term reside on exactly one machine, and queries rarely need to contact more than a single shard.
+，未选择
+
+Production systems rely almost exclusively on hybrid schemes in which term-partitioned and document-partitioned layouts are used equally often, with no clear preference for either as the primary strategy.
+，未选择
+
+Most systems avoid any explicit partitioning; a single monolithic index is kept on one large server, and scaling is handled almost entirely by caching.
+，未选择
+位置26的问题的结果。
+26
+0 / 1分
+选择题
+Many learned indexes use a 'neighborhood search' around the model-predicted position for a key in a sorted array. Which statement about this mechanism is NOT correct?
+
+Even if the model's error bound is known, the window size cannot be chosen to guarantee correctness while limiting scan cost.
+，未选择
+
+It relies on the fact that the data is stored in key-sorted order, so nearby positions are good candidates when the prediction is off.
+，未选择
+
+It compensates for model error by scanning a bounded window around the predicted index in the sorted array.
+，未选择
+错误答案：
+
+Neighborhood search can be combined with a small fallback binary search inside the window to further reduce the number of comparisons.
+正确答案：
+Even if the model's error bound is known, the window size cannot be chosen to guarantee correctness while limiting scan cost.
+位置27的问题的结果。
+27
+0 / 1分
+选择题
+In a modular operator-based query execution engine (Scan, Select, Join, etc.), which statement is NOT correct?
+错误答案：
+
+Different physical implementations of the same logical operator (e.g., nested-loop join vs. hash join) can be swapped without changing the rest of the pipeline.
+正确答案：
+Operator modularity supports query optimization passes that rewrite pipelines by recompiling low-level executor code.
+
+Modularity can make it easier to introduce new operators, such as a custom Aggregation or Sort, without rewriting existing code.
+，未选择
+
+Operator modularity supports query optimization passes that rewrite pipelines by recompiling low-level executor code.
+，未选择
+
+Operators expose a standard interface (e.g., open, next, close) so they can be composed into pipelines.
+，未选择
+位置28的问题的结果。
+28
+1 / 1分
+选择题
+```cpp
+while (leaf) {
+    for (size_t i = 0; i < leaf->count; i++) {
+        if (!comp(leaf->keys[i], low) && !comp(high, leaf->keys[i])) {
+             result.emplace_back(leaf->keys[i], leaf->values[i]);
+        }
+       if (comp(high, leaf->keys[i])) return result;
+   }
+    if (leaf->next == INVALID_VALUE) break;
+    leaf = std::static_pointer_cast<LeafNode>(getNode(leaf->next));
+}
+```
+During a `rangeQuery(low, high)`, the B+ Tree traverses to the starting leaf node. How does it efficiently gather all matching pairs across multiple leaf nodes?
+
+
+It jumps back up to the parent `InnerNode`, finds the child pointer adjacent to the current leaf, and descends into it.
+，未选择
+
+It repeatedly queries the buffer manager to find the page ID numerically sequential to the current leaf's `node_id`.
+，未选择
+
+It recursively calls `lookup()` on every key integer between `low` and `high` to fetch them one by one from the root.
+，未选择
+正确答案：
+
+It iterates through the leaf keys and follows the `next` pointer to the sibling leaf.
+位置29的问题的结果。
+29
+0 / 1分
+选择题
+Which of the following is NOT a typical application of ND R-Trees?
+
+Sorting text files lexicographically by treating each character as a separate dimension.
+，未选择
+错误答案：
+
+Finding all pairs of objects whose regions intersect.
+正确答案：
+Sorting text files lexicographically by treating each character as a separate dimension.
+
+Indexing multi-dimensional feature vectors for nearest-neighbor queries.
+，未选择
+
+Spatial indexing for geographic information systems (GIS) managing maps, polygons, and points.
+，未选择
+位置30的问题的结果。
+30
+0 / 1分
+选择题
+Let D be the set of documents, and for each document d ∈ D and word w, let Pos(w, d) ⊆ ℕ be the set of token positions where w occurs in d.
+
+Define:
+proximitySearch(w1, w2, k) = { d ∈ D | ∃ p ∈ Pos(w1, d), q ∈ Pos(w2, d) such that |p − q| <= k }.
+
+Which of these statements about proximitySearch(word1, word2, k) is NOT correct?
+
+The implementation typically short-circuits once any qualifying pair is discovered for a document.
+，未选择
+错误答案：
+
+The check is symmetric in order; either term may appear first in the text.
+正确答案：
+When k ≥ 1, the routine requires pos2 = pos1 + k; otherwise the document is rejected.
+
+When k ≥ 1, the routine requires pos2 = pos1 + k; otherwise the document is rejected.
+，未选择
+
+A document qualifies if ∃ pos1, pos2 with |pos1 − pos2| <= k in that document’s position lists.

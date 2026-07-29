@@ -1,2 +1,3 @@
-- [出题人题型模式](exam-question-patterns.md) — GT 数据库课 quiz 的题型统计、错误选项 6 手法、计算题诱饵规律
-- [已交付的复习材料](deliverables-log.md) — 各 quiz 的 study guide / 练习题文件位置与覆盖范围
+- [出题人题型模式](exam-question-patterns.md) — quiz/期末的题型统计、错误选项 6 手法、计算题诱饵；期末计算题占比暴涨 + 跨论文张冠李戴新题型
+- [用户错题画像](user-error-profile.md) — 期中 10 道错题归纳的 6 类根因（偏好"漂亮机制"、误判论文原话为可疑、关系代数不牢…）
+- [已交付的复习材料](deliverables-log.md) — 各 quiz/论文/期末的材料位置与覆盖范围；⭐ 含 module 文件号↔课程号的编号陷阱

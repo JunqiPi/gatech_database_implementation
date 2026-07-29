@@ -1,0 +1,503 @@
+>> In this lesson,
+we will explore how columnar storage format improves the performance of
+analytical queries. We will understand the
+difference between columnar and rose
+storage formats using a weather dataset
+as our case study. Consider a weather data set
+with columns for timestamp, temperature, humidity,
+and wind speed. Suppose we need to find the average temperature between timestamp 5 and timestamp 75. Row storage is straightforward. It stores a set of records
+one after another in a page. This is good for
+transactions that typically access
+complete records. However, it is not effective for analytical queries that
+only require a few columns. For example, in this query, we only need the timestamp
+and temperature columns. But row storage
+forces us to read in unnecessary humidity
+and wind speed columns. With row storage, we need to read seven pages to
+answer this query. Reading these irrelevant
+columns leads to unnecessary disk IO
+operations and weighs in memory buffer space thereby
+slowing down our query. We can avoid the
+problem of reading irrelevant columns by using
+a columnar storage format. With a columnar storage format, we store each column in
+a separate set of pages. Page 1 here, for example, contains the timestamps
+for records 1-40. Page 2 contains the
+temperature values for records 1-40, and so on. In our weather dataset query, we need only two columns,
+timestamp and temperature. With this columnar
+storage format, only four pages with these
+two columns are accessed, thus avoiding unnecessary
+disc operations and improving query performance. This table summarizes
+the key differences between row and columnar
+storage formats. As we just discussed,
+with row storage, all the columns of a row
+are stored together. But with column storage, each column is stored
+in a separate file. The ideal query workload
+for row storage is transactional workloads where entre records are
+accessed frequently. For columnar storage,
+the ideal workload is an analytical workload which often requires only
+a subset of columns. The access pattern
+best supported by row storage is axing full rows, and the access pattern
+best supported by columnar storage is
+axing specific columns. Lastly, from a
+compression standpoint, row storage has limited compression potential due to the different types of
+values within a row. In contrast, pages towed
+using columns storage have much higher
+compression potential as each column is of
+a single data type. Let's generate a synthetic
+weather data set to understand the performance
+differences between row and columnar
+storage formats. We generate one million
+rows with four columns, timestamp, temperature,
+humidity, and wind speed. The function generates random
+temperature, humidity, wind speed values while
+ensuring sequential timestamps. This simulates some
+weather fluctuations. We store the table as a collection of four
+kilobyte pages. We model temperature
+changes using a normal distribution that
+changes around a mean value. We generate humidity and
+wind speed values using uniform distributions
+which allow for a random yet controlled variation
+within a defined range. The generated weather
+dataset looks like this. Temperature, humidity, and wind speed all vary over time. With row storage, we write enter records sequentially
+to a single file. This approach ensures that all columns of a record
+are stored together, which is suitable for
+transactional workloads, but not really effective
+for analytical workloads. With columnar storage, we write each column
+separately to distinct files. So this storage format allows selective access to
+specific columns, minimizing IO operations and
+improving query performance. Let's next query the generator dataset to analyze
+weather patterns. Let's run the same
+average temperature query over the data stored
+in row storage format. To do so we scan all the rows
+and filter by timestamp, and then accumulate
+the temperature values within the given
+timestamp range. With row storage, we
+read all the columns, even though only the timestamp and temperature
+columns are required. Since all the columns are red, this approach incurs
+significant IO overhead. Let's next run the
+same query over data stored in columnar
+storage format. With columnar storage format, we only access the timestamp
+and temperature files. We first read through
+the timestamp pages. Each timestamp value is checked against the
+given time range, and we check if the
+record qualifies or not. If the record qualifies, we save the satisfying
+records offset in a map. We then retrieve only the
+necessary temperature pages using the offsets that
+we previously collected. Each relevant temperature
+value is then summed up to compute the average temperature in the given timestamp range. Let's look at the
+performance impact of columnar storage and
+row storage formats. When we have a highly
+selective filter, running the same query using columnar storage format is 30 times faster than with
+row storage format. This is mainly because we read four times fewer pages from
+disk with columnar storage. This translates into
+faster query processing and better use of disc
+bandwidth and memory space. To recap, in this lesson, we learned about how the columnar storage
+format accelerates analytical queries by
+enabling access to specific columns and minimizing unnecessary
+IO operations. We also discussed
+about the differences between row and columnar
+storage formats. More generally, this lesson highlights the tight connection between the storage manager and the query execution engine
+of a database system.
+
+
+>> In this lesson, we will focus on compressing the
+data stored in a table to reduce storage
+costs and improve query speed by minimizing
+IO operations. We will learn about multiple
+compression algorithms that work well with
+column of storage, like Bit packing, Huffman coding, and
+dictionary encoding. Compression reduces the
+physical storage space on disk required to
+store large tables. For example, here we have a column with a
+set of timestamps. Instead of storing each
+timestamp as an absolute value, we can store the first timestamp in full and then represent the subsequent ones
+as the difference or the delta from the
+previous timestamp. This compression
+algorithm is known as Delta encoding as we are storing the deltas instead
+of absolute values. Delta encoding
+reduces storage size because the deltas are typically much smaller numbers
+that require fewer bits compared to
+storing full timestamps. More generally, by reducing
+the size of stored data, compression helps
+minimize the time spent on disk IO operations, which is a major bottleneck
+in query performance. Row storage makes us different
+data types in each row, making it difficult to find repeating patterns that compression algorithms
+can exploit. A single row might contain a timestamp product
+ID and a price, each with different
+encoding needs. In contrast, columns storage keeps all the values of a
+single column together. This structure makes it easier to compress
+using techniques like Delta encoding for timestamps or Btpacking for
+small integer ranges. In this way, column storage
+improves data similarity, making compression
+more effective. With columns storage,
+each column contains a single data type and is likely to have high
+data redundancy. For example, product IDs often repeat a lot across
+millions of rows, and temperature readings are typically within a small range. These patterns allow for
+high compression ratios. By reducing data size, Clumnnet compression also allows more data to fit in the
+in-memory buffer pool, significantly reducing
+disk IO operations. This leads to faster queries, especially for
+analytical workloads that only access a
+subset of columns. In this lesson, we will learn about four compression
+algorithms commonly used in databases for numeric and
+categorical data. Numeric data consists of measurable values such as
+timestamps or temperatures, while categorical
+data represents discrete labels like product
+IDs or country names. The first compression algorithm we will see is Delta encoding, which is useful for numeric data where values change
+incrementally. The second one is bit packing, which minimizes storage by using only the necessary number of bits to represent small
+range numeric values. Third, Huffman encoding is a frequency-based
+compression algorithm that assigns shorter codes to frequently occurring categorical
+values like strings. Fourth, Byte dictionary
+encoding replaces categorical values with
+compact byte-sized codes, making it efficient for columns with a limited number
+of unique values. With Delta encoding,
+as we just discussed, we compress the numeric data
+by only storing the deltas. Instead of storing each
+timestamp as an absolute value, we can store the first timestamp in full and then represent subsequent timestamps
+as the difference or Delta from the
+previous timestamp. Bit packing minimizes
+storage by allocating only as many bits as
+necessary for each value. It is suitable for columns with small ranges like
+temperature data. Suppose we have temperatures
+in Celsius, 35, 40, 45, and 50, which fit in a six-bit range values
+from zero through 63. Instead of using
+full integers which take up four bytes
+or 32 bits each, we can store the temperature
+values using just six bits. This bit pack function
+compresses a list of integers by storing each value using only the necessary
+number of bits. It first calculates the
+total bits required and determines the number of bytes needed to store
+them efficiently. Then, it iterates
+through each integer, extracting its bits
+and packing them sequentially into a bite vector
+using bitwise operations. During decompression, the
+extract value function decompresses a packed integer by retrieving its bits from
+the packed data vector. It first calculates the
+starting bit position based on the index
+and width width. Then, it trades through the
+required number of bits, checking if each bit is set in the pack data using
+bitwise operations. If a bit is found, it reconstructs the
+virgin integer by setting the corresponding
+bit in value.
+
+>> Let's next learn about
+Huffman encoding algorithm. Huffman encoding assigns
+shorter binary codes to frequently occurring
+categorical values like product IDs in sales data. It assigns shorter codes
+to more frequently occurring values
+and longer codes to less frequently
+occurring values. For example, here,
+say the product ID 111111 occurs 100
+times in the column, so it gets compressed down
+to a shorter code of zero. And the product ID 444444
+only occurs ten times, so it gets a longer code of 111. Let's look at the
+compression code. This build Huffman codes
+function constructs a Huffman tree based on
+character frequency. More frequent elements
+remain higher up in the tree while less frequent
+elements keep getting merged into
+deeper levels. Finally, the function
+calls build codes, which assigns binary codes to each character based on
+their position in the tree. Let's next look at
+dictionary encoding, specifically bite
+dictionary encoding. This method is only useful when the compressed column has a limited number
+of unique values. Dictionary encoding replaces
+categorical values in a small range with unique byte values
+from zero through 255. During compression, we loop through all the product
+IDs in the column. If the product ID already
+exists in the dictionary, it opens its assigned encoded
+value to encoded data. If the product ID is not found, it gets assigned a new
+unique byte value, and we update the
+reverse dictionary for decoding and increment
+the dictionary size. During decompression, these
+bytes are looked up in the dictionary and restored
+to their original form. This slide presents
+a comparison of query performance across different compression
+techniques. The query result, total sales remains consistent across all
+the compression algorithms, ensuring accuracy in results. Without compression,
+the query takes 7.79 milliseconds as raw product IDs require full string comparisons. With Huffman encoding,
+query time reduces to 2.24 milliseconds by using
+shorter binary codes, but still requires bitwise decoding thereby
+adding overhead. Byte dictionary
+encoding achieves the fastest performance at 0.71 milliseconds because product
+IDs are replaced with single-byte values allowing
+for very rapid comparisons. This highlights how
+compression not only reduces storage space but also
+improves query efficiency. Let's next use some of these compression algorithms
+on the weather dataset. Our weather dataset
+revolves around timestamps. We can first use Delta
+encoding to store the difference between
+consecutive timestamps instead of full values. Since timestamps usually
+increase incrementally, this approach
+significantly reduces data size while
+preserving full accuracy. This code initializes
+Delta timestamp vector, sets the first value to
+the original timestamp, and uses adjacent
+difference function to compute differences. For the temperature column, we can shift the values by subtracting the
+minimum temperature. By subtracting the
+minimum temperature, we shrink the range of
+temperature values. The code first finds the minimum temperature
+using STD min element and then applies STD transform to adjust all the values
+relative to that minimum. After shrinking the
+temperature range, we can compress the
+adjusted temperature values using only the necessary
+number of bits. The bit pack function takes a vector of adjusted
+temperatures and a specified bitwidth
+ensuring that each value is stored in the smallest possible
+number of bits. For example, four bits is enough for temperature data
+in a small range. We can store the
+compressed columns in separate binary files, the timestamps or delta encoded, and the temperatures are bit
+packed after adjustment. While running a query, we can reconstruct
+timestamp values by adding back the deltas
+and reconstruct temperature values by
+extracting them from the packed value using
+bitwise operations. In this slide, we show some illustrative
+performance results. We compare the query
+performance across all the different
+storage formats with row storage where entire
+rows are scanned, the query takes
+17.57 milliseconds. Switching to columns storage
+improves performance to 5.13 milliseconds since only the relevant
+columns are accessed. Finally, using compressed
+columns storage, we further reduce
+query time to 4.08 milliseconds as
+fewer bytes need to be read from disk and
+decompressed efficiently. This demonstrates how
+compression when combined with columnar storage can further
+speed up analytical queries. To recap, in this lesson, we explore how
+compression works well with columnar storage model
+and enables faster queries. We learned about several
+compression algorithms tailored for different
+types of data, like Delta encoding,
+pit packing, Huffman encoding, and
+bite dictionary encoding. These compression techniques not only save disk space but also accelerate queries by improving disc bandwidth and
+memory utilization.
+
+>> In this lesson,
+we will learn about how processing a
+vector of tuples at a time can improve performance compared to the traditional
+tuple-at-a-time approach. We will discuss about a set of assembly instructions known as SIMD instructions that
+are important for implementing vector-at-a-time processing in a database system. Vectorized execution taps into the inherent parallelism
+of modern CPUs. Traditional execution process
+each tuple at a time, incurring a lot of overhead on processing every
+tuple independently. First, each tuple will trigger function calls between
+different relational operators. Second, the CPU
+cannot fully utilize its ability to work on
+multiple tuples in one go. Third, this tuple at a time
+processing approach often causes CPU pipeline
+stalls and cache misses, hurting overall
+query performance. We can address these
+limitations by processing a batch
+of tuples at a time. This approach is known as vector-at-a-time processing
+because we perform the same operation like
+this filtering operation on multiple data points in
+a single CPU instruction. Batching reduces function
+call overhead because we only transition between
+operators once per batch rather
+than once per tuple. As we will see, this
+streamlined approach better matches modern
+CPU architecture. CMD provides a set of specialized instructions
+that are good for repetitive arithmetic or
+comparison operations across contiguous arrays. A few common database use cases include filtering
+rows within a range, aggregating values
+like sums or averages, and decoding
+compressed data stored in formats like BitPack columns. The core SIMD operations involve
+loading vectors of data, applying mass to filter
+or select elements, and performing
+horizontal reductions to accumulate partial sums. These instructions
+let the CPU act on multiple data
+elements in parallel, maximizing throughput. Here we see a simple
+example demonstrating how SIMD instructions come into play when
+filtering timestamps. First, we load the data in
+batches using the vld1q_s32, which transfers four
+consecutive 32 bit integers into a SIMD register. Then we perform vectorized
+comparisons with instructions like V compare
+greater than or equal to 32, and vc less than equal to 32. We combine these
+comparison results using a bitwise and operation to produce a mask indicating which timestamps fall within the
+desired timestamp range. This vectorized
+approach replaces a loop of scalar comparisons, allowing the CPU to handle four timestamps per instruction. So here's a concrete example. We first load
+timestamps 18, 40, 25, and 15 into a semi register
+using the v load instruction. We then apply we compare
+greater than equal to to check which instructions
+are greater than 20, and we see less than equal to to see which
+are less than 30. Finally, with v and, we combine these
+conditions to identify numbers that are both greater
+than 20 and less than 30, resulting in a single
+qualifying integer 25. In scalar execution,
+each data element goes through the entire
+instruction cycle individually. That means each element
+triggers an instruction fetch, decode, and execute, which adds up quickly
+for large datasets. In contrast, SIMD execution
+process a batch of elements in a single instruction like eight elements or
+four elements at a time. This parallel approach maps well to tasks like filtering
+or arithmetic, where we apply the same
+operation repeatedly. By grouping data into vectors, we achieve significantly
+higher throughput on modern CPUs. SIMD cuts down the number of instructions needed to
+process large datasets. If you have N data points, scalar processing would
+typically need instructions for, say, adding or
+comparing each element. With a vector of width W
+and vectorized execution, you only need N/W instructions
+for SIMD processing. This reduction in
+instruction count not only speeds up execution, but also decreases overhead from instruction
+decoding and scheduling. The fewer instructions we
+push through the pipeline, the less time the CPU weighs wearing on these
+overhead operations. Vectors processing
+also benefits from more regular access patterns in memory because data is
+stored in contiguous arrays, columnar formats, especially, loading vectors aligns
+well with cache lines. The CPU fetches the
+entire cache lines that match the SIMD
+register width, making full use of
+each memory transfer. By contrast, scattered or
+row based access can lead to partial cache line
+usage and more cache mess. Overall, columnar plus SIMD leads to efficient use
+of the memory subsystem. SIMD minimizes
+branching by applying one instruction uniformly
+across an entire vector. With scalar code, frequent
+branching can cause pipeline stalls if
+the CPU mispredicts which path a
+condition will take. In vectorized code, we rely
+on mass instead of branches, mitigating these stalls and
+keeping the pipeline busy. SIMD concepts actually traced back to the early
+supercomputers, such as ILLIAC Iv, where scientific
+workloads benefited from paralyzing
+vector operations. In this period, the
+goal was to handle large scale numerical
+computations like matrix multiplication
+by processing multiple data points
+per instruction. In the 1980s and 1990s, SIMD gained momentum in multimedia and
+graphics applications. Intel's MMX, introduced in 1996, marked a big step
+for desktop CPU by adding instructions for
+parallel integer math, which was vital for tasks
+like image processing. An example usage
+scenario is increasing the brightness of an image
+by a constant value, which is a straightforward
+parallel operation across pixel arrays. In the early 2000s, SIMD became a permanent fixture
+in general purpose CPUs, Intel released streaming
+SIMD extensions, also known as SSC, an ARM introduced NEON, both of which expanded
+to 128 bit operations. These technologies supported
+floating point numbers, enabling parallel processing
+for a wide range of applications from audio-video processing
+to gaming physics. From 2010 onwards, we have seen even more powerful SIMD
+extensions like Intel's AVX FL, which push the size of
+the SIMD registers to FTL bits dramatically increasing
+potential parallelism. Modern analytical engines and big data systems
+now routinely use these instructions
+for tasks such as columnar scans, aggregations
+and compression. Systems like Apache Arrow are designed with columnar
+data storage format in mind and exemplify how software can exploit
+SIMD at scale. This slide shows a
+simple data structure designed to work well with
+SIMD for a sensor data set. By splitting out the timestamps and temperatures into
+separate arrays, we follow a structure of
+arrays or SOA approach. This makes each column of
+data contiguous in memory, which is perfect
+for vector loads. Aligning the arrays with SIMD friendly boundaries also helps in preventing
+misaligned axis. In this code snippet, we generate synthetic
+sensor data. We start with a random
+number generator and distributions for
+temperature values and timestamp increments. The function populates the
+sensor data structure by assigning each sensor reading timestamp and a temperature. Here, normal distribution
+is used for temperature and a uniform distribution is used for the incremental timesteps.
+
+>> Now, we will see how to query this sensor
+data using SIMD. Our task is to compute the average temperature within a specified timestamp range. In a scalar implementation, we would check
+each timestamp and add its temperature to a
+running total if it's in range. With SIMD, we can handle multiple timestamps
+in one instruction, applying vector comparisons
+and vector summation. We start the SIMD
+query by loading four timestamps and
+four temperatures into two separate registers. The function vload
+integers loads four 32 bit integers while vload f32 loads
+four 32 bit floats. We start the SIMD query by
+loading four timestamps and four temperatures into
+two separate registers. These two functions load four 32 bit integers
+and 32 bit floats. By fetching these values
+into the batches of four, the CPU can operate
+on them in parallel. Next, we compare the
+loaded timestamps against our desired range. The first instruction checks if each element is greater than
+or equal to start timestamp, while the second
+one checks if it's less than or equal
+to n timestamp. These two instructions
+produce two vector mask, each indicating which
+elements meet the condition. We combine them with
+an AND instruction performing a bitwise AND that retains
+only the elements that satisfy both conditions. This mask will guide which temperature values
+we will add into our sum. Once we have the mask, we apply it on the
+temperature vector. We first convert the
+mask to a float vector, this can be done using
+instructions shown here, and we then multiply
+element wise with the temperature
+values using vmulq. Elements outside our timestamp
+range turn into zeros while those within
+the timestamp range keep their original
+temperature values. We then use vaddq to add these masked temperatures
+to our running sum vector. This approach
+seamlessly integrates conditional filtering without resorting to branch
+instructions. After processing all the
+four element chunks, we perform a horizontal
+reduction to sum the elements in
+the sum_vec register. Different SIMD instruction sets have specialized instructions like vaddvq that can produce
+a scalar sum from a vector. Finally, we handle
+any leftover elements if our total count isn't a multiple of four in a scalar loop to ensure
+that no data is missed. Combining the
+vectorized portion with a simple scalar tile case is a common pattern for
+SIMD algorithms. This snippet provides
+a glimpse of how SIMD can accelerate even more complex
+queries like hash joins. First, we load a batch of probe_keys into
+a SIMD register. We then compute a hash in
+parallel using multiplication and [inaudible] operations to determine which lots to look up. Then we gather values
+from the hash table, which typically requires
+specialized gather instructions as the lookups are
+not contiguous. Finally, we compare the loaded keys with
+the table entries to identify matches using a
+vector compared instruction. Although non contiguous
+access can be challenging, well designed data
+layouts can still harness SIMD to boost hash
+join performance. So how are these SIMD
+instructions named? SIMD instruction names
+follow a convention that indicates the operation
+type like and multiply, et cetera, and the
+data type integer or float and the vector width. For example, vload1QS 32 represents loading a vector
+of 432 bit signed integers, and vaddqf 32 signifies a floating point addition
+across four floats. The Q often denotes a quad
+word operation like 128 bits, although newer SIMD extensions
+expand to 256 or 512 bits. These naming schemes
+help developers quickly identify the operant
+types and vector sizes. And understanding these
+conventions is important for writing or reading
+SIMD optimized code. To recap, in this lesson, we explored the idea of vectorized execution
+which process multiple tuples at a time, unlike the traditional
+tuple at a time approach. We then delved into SIMD instructions that
+are critical for implementing vectorized
+execution in database systems. The SIMD instructions reduce the number of CPU
+cycles needed per operation and improve
+the utilization of the CPU cache and
+memory bandwidth. By tapping into the
+inherent parellilism of modern CPUs vectorized execution can significantly accelerate
+query processing.
+
+>> Let's first take a step back and reflect on what
+we have accomplished. We have come a long
+way in this course, diving deep into
+systems programming, a field that's as rewarding
+as it's challenging. By exploring how systems
+operate from the ground up, you have gained a good eye for detail and a strong
+understanding of systems concepts that go beyond databases
+including threading, memory management, and IO. You should reflect on your journey through this course and realize how much you have
+grown in systems programming, not just in knowledge, but in your ability to tackle complex system
+level problems. So what are the big
+ideas from this course? Database systems are awesome, they are at the heart of solving real world problems
+efficiently and effectively. But database systems
+are not magical. The magic actually lies in
+the abstractions that they enable that leads to higher
+usability and performance. We have seen how the
+declarativity of SQL simplifies complex data
+management applications. Think of how a simple
+Google search or Chat GPT query abstracts away the complexities of vast
+data retrieval operations. We also learned how building systems is
+more than hacking. It is an art that balances design principles
+and reusability. Throughout this course,
+we have identified recurring patterns like
+modularity, caching, and abstraction that
+are super important across several areas of computer science like
+computer architecture, networking, and
+programming languages. Lastly, computer science and database systems are evolving disciplines and you can contribute to the future
+of these disciplines.

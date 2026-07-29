@@ -1,0 +1,112 @@
+Final's Practice Questions
+Here are some practice questions:
+
+1. A column store uses block-wise delta encoding for 64-bit integer columns: within each block, it stores the first value and then encodes differences (deltas) to subsequent values, followed by bit-packing based on the maximum delta in the block.
+
+Which statement about situations where delta encoding is a poor choice is NOT correct?
+
+A. For workloads dominated by random point lookups, delta encoding can be less attractive because decoding may require reconstructing a sequence of values within a block just to access a single position.
+
+B. If the column values in storage order are effectively random (no correlation between neighbors), the deltas are also large and random, so delta encoding yields little or no compression.
+
+C. On pages that are frequently updated in place, delta encoding can be attractive because small changes may require recomputing only a few deltas, so update performance is good along with compression.
+
+D. If data exhibits large periodic jumps (e.g., a counter that frequently resets to zero), a single large delta in a block can force a wide bit-width for all deltas in that block, reducing compression effectiveness.
+
+2. A disk-resident B+Tree indexes 12,000 distinct keys. Each non-root node can have up to 100 children and is about 75% full on average. Approximately how many levels does the tree have (root-to-leaf, inclusive)?
+
+A. 4
+
+B. 1
+
+C. 2
+
+D. 3
+
+3. A hash table uses open addressing with double hashing and has size m = 11 (slots 0 through 10). The two hash functions are: h1(k) = k mod 11 h2(k) = 1 + (k mod 5)
+
+The current occupancy of the table is (E = empty, X = occupied): 
+
+Index: 0 1 2 3 4 5 6 7 8 9 10 
+
+State: X E E E E X E E X E E
+
+Using double hashing, at which index will key k = 27 be inserted?
+
+A. Index 3
+
+B. Index 9
+
+C. Index 6
+
+D. Index 1
+
+4. A storage engine considers two designs for a generic B+Tree leaf page that stores key–record pairs.
+
+12345678910111213
+// Design A: store records inline in the leaf template 
+<typename Key, typename T> struct BPlusLeafInline { 
+ Key keys[NUM_SLOTS]; 
+ T records[NUM_SLOTS]; // records stored by value 
+ // ... metadata ... 
+};
+
+// Design B: store pointers to records in a separate heap/segment template 
+<typename Key, typename T> struct BPlusLeafPtr { 
+  Key keys[NUM_SLOTS]; 
+  T* record_ptrs[NUM_SLOTS]; // pointers to records 
+  // ... metadata ... 
+};
+Which statement about the performance and storage implications of these two designs is NOT correct?
+
+A. With large, fixed-size, inline records, each leaf page holds fewer key-record pairs when T is large, which can increase the height of the B+Tree and the number of page I/Os for point and range queries.
+
+B. Storing only pointers in the leaf can reduce write amplification for updates to non-indexed fields of T, because the record can often be updated in place in the heap without moving or rewriting the leaf entry.
+
+C. With pointer-based leaves, more (key, pointer) entries fit into a leaf page when T is large, which can reduce tree height and index I/Os, at the cost of an extra pointer chase (and potential page access) to fetch each record.
+
+D. For small, fixed-size records that fit comfortably in a page, pointer-based leaves are faster for range queries, because the engine only needs to scan the key and pointer arrays and can ignore the actual record contents.
+
+5. Consider binary search over a large sorted array of keys. The variables l and h are 32-bit integers representing the current low and high indices (inclusive) into this array.
+
+In the binary search code, which expression for the midpoint index mid is preferred?
+
+A. mid = (l + h) / 2;
+
+B. mid = l + (h - l) / 2;
+
+C. mid = (l + h) / 2 - 1;
+
+D. mid = (l + h + 1) / 2;
+
+6. A DBMS supports two execution modes for a simple filter operator over an in-memory table: 
+
+• Volcano-style iterator: next() returns one tuple at a time. 
+
+• Vectorized iterator: nextBatch() returns a batch of 1000 tuples at a time.
+
+Assume the following CPU costs: 
+
+• Volcano next(): 80 ns of iterator/control overhead + 20 ns to evaluate the predicate per tuple. 
+
+• Vectorized batch: 200 ns of iterator/control overhead per batch + 20 ns to evaluate the predicate per tuple.
+
+Ignore all other costs (I/O, cache misses, etc.). Approximately how much faster is the vectorized execution compared to the Volcano tuple-at-a-time execution, in terms of tuples processed per second?
+
+A. About 3X faster
+
+B. About 5X faster
+
+C. About the same throughput
+
+D. About 10X faster
+
+7. The C-Store paper proposes several concrete optimizations for a read-mostly, column-oriented data warehouse engine built around projections. Which of the following is NOT one of the core design techniques emphasized in the C-Store architecture?
+
+A. Delaying tuple reconstruction (late materialization), operating on compressed columns as long as possible.
+
+B. Storing data in columnar projections that are often sorted on chosen keys to accelerate predicates and joins.
+
+C. Using heavy compression schemes over columns within projections.
+
+D. Generating query-specific machine code using a compiler to fuse operators into tight loops.

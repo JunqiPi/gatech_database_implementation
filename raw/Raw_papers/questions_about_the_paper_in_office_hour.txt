@@ -1,0 +1,95 @@
+Which statement is correct?
+A.    
+In learned range indexes, the model must predict the exact record location.
+B.    
+In learned range indexes, a key requirement is that keys are uniformly distributed.
+C.    
+In learned range indexes, the model approximates the key’s position in sorted order.
+
+Recognized learned index structures and identified correct answer
+Recognized learned index structures and identified correct answer
+
+C is correct.
+
+A learned range index (like the Recursive Model Index from Kraska et al.'s "The Case for Learned Index Structures") works by learning the cumulative distribution function (CDF) of the keys. Given a key, the model predicts its approximate position in the sorted array, and then a local search (e.g., binary search within an error bound like min/max error) finds the exact record.
+
+Why the others are wrong:
+
+A — The model doesn't need to predict the exact location. It only needs to get close; the prediction comes with error bounds, and the exact position is found by searching within that bounded range. This tolerance for approximation is precisely what makes learned indexes practical.
+
+B — There's no requirement that keys be uniformly distributed. In fact, if keys were perfectly uniform, you wouldn't need a learned model at all — a simple linear interpolation would work. The whole point of learning the CDF is to handle arbitrary, non-uniform key distributions.
+
+Which statement is correct for a recursive model index (RMI)?
+A.    
+In an RMI, one model's output is used to select a model in the next stage and the last stage predicts the record position.
+B.    
+In an RMI, every stage performs a binary search before deciding which model to evaluate next.
+C.    
+In an RMI, all models at the same stage must cover equal-sized key ranges, as in B-tree nodes.
+
+A is correct.
+
+An RMI is a hierarchy of models organized in stages. The root model takes the key and its output is used to pick which model in the next stage to evaluate. This repeats down the stages, and the final (leaf) stage model predicts the record's position in the sorted data, after which a bounded local search finds the exact record.
+
+Why the others are wrong:
+
+B — No binary search happens between stages; each stage is just a model evaluation (e.g., a small linear model or neural net), which is what makes RMI traversal fast. Binary search (or similar) is only used at the very end, within the leaf model's error bounds, to locate the exact position.
+
+C — Unlike B-tree nodes, models at the same stage don't need to cover equal-sized key ranges. The key space is partitioned based on the predictions of the upper-stage models, so coverage adapts to the data distribution — some models may cover many keys, others few. This flexibility is a feature, not a bug: simple regions can be handled by one model covering a huge range, while complex regions get finer-grained models.
+
+Which statement is correct?
+A.    
+Parallel database systems achieve near-linear speedup when using shared memory.
+B.    
+Speedup means the system runs the same job N times faster on N times more hardware, while scaleup means it runs an N times larger job in the same time.
+C.    
+Scaleup means the system runs the same job N times faster on N times more hardware, while speedup means it runs an N times larger job in the same time.
+
+B is correct.
+
+These are the classic definitions from parallel database systems (DeWitt & Gray):
+
+Speedup: fix the problem size, grow the hardware. Ideal (linear) speedup means N× hardware runs the same job N× faster.
+Scaleup: grow the problem and hardware together. Ideal (linear) scaleup means N× hardware runs an N× larger job in the same elapsed time.
+
+Why the others are wrong:
+
+C — This just swaps the two definitions.
+
+A — Shared-memory architectures actually tend to scale worst among parallel architectures. Contention on the shared memory bus and interconnect limits scalability to a relatively small number of processors. Near-linear speedup/scaleup is the hallmark of shared-nothing architectures, which minimize interference by giving each node its own CPU, memory, and disk — that's why shared-nothing became the dominant design for large parallel database systems.
+
+Identified overlapping projections with varied sort orders as correct
+Identified overlapping projections with varied sort orders as correct
+
+A is correct.
+
+In C-Store (Stonebraker et al.), the physical storage unit is the projection: a group of columns from a table (possibly with joined columns from other tables), stored column-wise and sorted on some sort key. A table is represented by one or more projections, and the same column can appear in multiple projections with different sort orders. This redundancy is deliberate: the query optimizer picks whichever projection's sort order best serves a given query, and the extra copies also provide recovery capability (K-safety). A covering set of projections plus join indexes lets the system reconstruct full tuples when needed.
+
+Why the others are wrong:
+
+B — Projections in C-Store are physical storage structures, not logical views over a row store. There is no underlying row-store layout at all; the columns of each projection are what's actually stored on disk, each column in its own compressed file. (Reading/writing goes through a small write-optimized store plus the read-optimized column store, but both are column-organized.)
+
+C — It's the opposite on both counts. C-Store embraces redundant storage (the same column in several projections), and sorting is what makes compression more effective, not less: a column sorted (or secondarily sorted) exhibits long runs of equal or ordered values, enabling aggressive schemes like run-length encoding and delta encoding. Storing data "in multiple sort orders and compressed" is cheap enough precisely because column compression works so well — trading inexpensive disk space for query performance.
+
+Which statement is correct with respect to C-Store’s update architecture?
+A.    Updates are applied directly inside compressed RS segments, and readers wait while those segments are recompressed.
+B.    Inserts go to the write-optimized WS, while the tuple mover later merges WS data into the read-optimized RS in bulk.
+C.    C-Store uses a single mutable column store, so the tuple mover is needed only for backup and recovery.
+
+Identified correct database architecture principle regarding write-optimized storage
+Identified correct database architecture principle regarding write-optimized storage
+
+B is correct.
+
+C-Store's architecture splits storage into two tiers:
+
+WS (Writeable Store): a small, write-optimized component that absorbs all inserts (and the insert half of updates). It's column-organized too, but uncompressed and designed for efficient modification.
+RS (Read-optimized Store): the large, heavily compressed, sorted column store where the bulk of the data lives. It's essentially append/read-only from the perspective of transactions.
+
+Deletes are handled by marking tuples with a deletion marker rather than touching RS in place, and updates are a delete + insert. The tuple mover runs in the background, periodically migrating batches of tuples from WS into RS in bulk (a merge-out process similar to an LSM-tree merge), rebuilding compressed segments efficiently. Queries transparently read both WS and RS and combine the results (filtering out deleted tuples via snapshot isolation on the deletion markers).
+
+Why the others are wrong:
+
+A — In-place updates inside compressed, sorted RS segments would be extremely expensive — you'd have to decompress, shift, and recompress data on every write, and block readers while doing it. Avoiding exactly this is why the WS/RS split exists: writes never touch RS directly, and the recompression work is done in bulk, asynchronously, by the tuple mover.
+
+C — C-Store deliberately does not use a single mutable store; the two-tier design is the core of its update architecture. And the tuple mover's job is data migration (WS → RS), not backup — recovery in C-Store is instead based on K-safety, i.e., rebuilding a failed site's data from the redundant projections stored at other sites.
