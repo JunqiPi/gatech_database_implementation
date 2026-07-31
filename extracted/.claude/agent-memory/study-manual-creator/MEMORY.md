@@ -1,4 +1,5 @@
+- [授课进度与剩余计划](learning-progress.md) — ⭐ 已讲完 module_11/12 + P12/P11/P9；下一个 P10，之后 P7 优先；含用户三类固定失误与必须遵守的授课格式
 - [命题前必须校准真题形态](feedback-question-generation.md) — ⚠️ 上次 60 题"一道没压中"的三条根因与修正（计算题占比、题目长度、C++ 实现题占 40%）
-- [出题人题型模式](exam-question-patterns.md) — quiz/期末的题型统计、错误选项 8 手法、计算题诱饵；期末计算题占比暴涨 + 跨论文张冠李戴新题型
-- [用户错题画像](user-error-profile.md) — 期中 10 道错题归纳的 6 类根因（偏好"漂亮机制"、误判论文原话为可疑、关系代数不牢…）
+- [出题人题型模式](exam-question-patterns.md) — 真题实测题型分布（反选题 71%、计算题仅 5%）、错误选项 8 手法、主题密度、⭐ 考试会原样复用 exercise sheet 的题
+- [用户错题画像](user-error-profile.md) — 期中 10 错 + Sheet 02 真题 16/30 的合并根因；根因 A（排除"平淡但正确"的选项）命中 10 次
 - [已交付的复习材料](deliverables-log.md) — 各 quiz/论文/期末的材料位置与覆盖范围；⭐ 含 module 文件号↔课程号的编号陷阱
